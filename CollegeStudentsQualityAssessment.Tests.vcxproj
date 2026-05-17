@@ -44,6 +44,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>bcrypt.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -60,6 +61,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>bcrypt.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -72,16 +74,20 @@
     <ClCompile Include="src\domain\StudentScore.cpp" />
     <ClCompile Include="src\domain\UserRecord.cpp" />
     <ClCompile Include="src\repository\AssessmentRepository.cpp" />
+    <ClCompile Include="src\repository\SecureFileStore.cpp" />
     <ClCompile Include="src\repository\TextTable.cpp" />
     <ClCompile Include="src\service\AdditionService.cpp" />
     <ClCompile Include="src\service\ActivityService.cpp" />
     <ClCompile Include="src\service\AuthService.cpp" />
     <ClCompile Include="src\service\CourseService.cpp" />
     <ClCompile Include="src\service\MoralService.cpp" />
+    <ClCompile Include="src\service\PasswordHasher.cpp" />
     <ClCompile Include="src\service\QueryService.cpp" />
     <ClCompile Include="src\service\ScoreCalculator.cpp" />
     <ClCompile Include="src\service\ScoreService.cpp" />
     <ClCompile Include="src\service\TotalValidation.cpp" />
+    <ClCompile Include="src\ui\ConsoleInput.cpp" />
+    <ClCompile Include="src\ui\ConsoleView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\domain\ActivityRecord.h" />
@@ -90,16 +96,20 @@
     <ClInclude Include="src\domain\StudentScore.h" />
     <ClInclude Include="src\domain\UserRecord.h" />
     <ClInclude Include="src\repository\AssessmentRepository.h" />
+    <ClInclude Include="src\repository\SecureFileStore.h" />
     <ClInclude Include="src\repository\TextTable.h" />
     <ClInclude Include="src\service\AdditionService.h" />
     <ClInclude Include="src\service\ActivityService.h" />
     <ClInclude Include="src\service\AuthService.h" />
     <ClInclude Include="src\service\CourseService.h" />
     <ClInclude Include="src\service\MoralService.h" />
+    <ClInclude Include="src\service\PasswordHasher.h" />
     <ClInclude Include="src\service\QueryService.h" />
     <ClInclude Include="src\service\ScoreCalculator.h" />
     <ClInclude Include="src\service\ScoreService.h" />
     <ClInclude Include="src\service\TotalValidation.h" />
+    <ClInclude Include="src\ui\ConsoleInput.h" />
+    <ClInclude Include="src\ui\ConsoleView.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

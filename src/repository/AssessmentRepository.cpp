@@ -1,8 +1,10 @@
 #include "AssessmentRepository.h"
 
+#include "SecureFileStore.h"
 #include "TextTable.h"
 
 #include <fstream>
+#include <sstream>
 #include <stdexcept>
 
 namespace
@@ -22,12 +24,11 @@ namespace
 		return input;
 	}
 
-	std::ofstream openOutput(const std::string& path)
+	std::istringstream optionalRuntimeInput(const std::string& path, bool& loaded)
 	{
-		std::ofstream output(path);
-		if (!output)
-			throw std::runtime_error("cannot write data file: " + path);
-		return output;
+		std::string content;
+		loaded = SecureFileStore::readOptionalProtectedText(path, content);
+		return std::istringstream(content);
 	}
 }
 
@@ -65,7 +66,10 @@ void AssessmentRepository::loadUsers()
 void AssessmentRepository::loadCourses()
 {
 	courses_.clear();
-	std::ifstream input = openInput(path("Course.txt"));
+	bool loaded = false;
+	std::istringstream input = optionalRuntimeInput(path("Course.txt"), loaded);
+	if (!loaded)
+		return;
 	const int count = TextTable::readRecordCount(input);
 	for (int index = 0; index < count; ++index)
 	{
@@ -79,7 +83,10 @@ void AssessmentRepository::loadCourses()
 void AssessmentRepository::loadActivities()
 {
 	activities_.clear();
-	std::ifstream input = openInput(path("Act.txt"));
+	bool loaded = false;
+	std::istringstream input = optionalRuntimeInput(path("Act.txt"), loaded);
+	if (!loaded)
+		return;
 	const int count = TextTable::readRecordCount(input);
 	for (int index = 0; index < count; ++index)
 	{
@@ -93,7 +100,10 @@ void AssessmentRepository::loadActivities()
 void AssessmentRepository::loadAdditions()
 {
 	additions_.clear();
-	std::ifstream input = openInput(path("Add.txt"));
+	bool loaded = false;
+	std::istringstream input = optionalRuntimeInput(path("Add.txt"), loaded);
+	if (!loaded)
+		return;
 	const int count = TextTable::readRecordCount(input);
 	for (int index = 0; index < count; ++index)
 	{
@@ -110,7 +120,10 @@ void AssessmentRepository::loadStudentMorals()
 {
 	studentMoralsByReceiver_.clear();
 	studentMoralsByGiver_.clear();
-	std::ifstream input = openInput(path("Moral_s.txt"));
+	bool loaded = false;
+	std::istringstream input = optionalRuntimeInput(path("Moral_s.txt"), loaded);
+	if (!loaded)
+		return;
 	const int count = TextTable::readRecordCount(input);
 	for (int index = 0; index < count; ++index)
 	{
@@ -126,7 +139,10 @@ void AssessmentRepository::loadStudentMorals()
 void AssessmentRepository::loadTeacherMorals()
 {
 	teacherMorals_.clear();
-	std::ifstream input = openInput(path("Moral_t.txt"));
+	bool loaded = false;
+	std::istringstream input = optionalRuntimeInput(path("Moral_t.txt"), loaded);
+	if (!loaded)
+		return;
 	const int count = TextTable::readRecordCount(input);
 	for (int index = 0; index < count; ++index)
 	{
@@ -141,8 +157,11 @@ void AssessmentRepository::loadTeacherMorals()
 void AssessmentRepository::loadTotals()
 {
 	totals_.clear();
-	std::ifstream input = openInput(path("Total.txt"));
-	const int count = TextTable::readRecordCount(input);
+	bool loaded = false;
+	std::istringstream input = optionalRuntimeInput(path("Total.txt"), loaded);
+	int count = 0;
+	if (loaded)
+		count = TextTable::readRecordCount(input);
 	for (int index = 0; index < count; ++index)
 	{
 		StudentScore record;
@@ -150,7 +169,8 @@ void AssessmentRepository::loadTotals()
 		if (!totals_.insert(std::pair<std::string, StudentScore>(record.account, record)).second)
 			throw std::runtime_error("duplicate total account: " + record.account);
 	}
-	TextTable::requireNoExtraRecords(input);
+	if (loaded)
+		TextTable::requireNoExtraRecords(input);
 	if (count == 0)
 	{
 		for (std::map<std::string, UserRecord>::const_iterator iter = users_.begin(); iter != users_.end(); ++iter)
@@ -167,58 +187,65 @@ void AssessmentRepository::loadTotals()
 
 void AssessmentRepository::saveUsers() const
 {
-	std::ofstream output = openOutput(path("User.txt"));
+	std::ostringstream output;
 	output << users_.size() << '\n';
 	for (std::map<std::string, UserRecord>::const_iterator iter = users_.begin(); iter != users_.end(); ++iter)
 		output << iter->second;
+	SecureFileStore::writePlainText(path("User.txt"), output.str());
 }
 
 void AssessmentRepository::saveCourses() const
 {
-	std::ofstream output = openOutput(path("Course.txt"));
+	std::ostringstream output;
 	output << courses_.size() << '\n';
 	for (std::multimap<std::string, CourseRecord>::const_iterator iter = courses_.begin(); iter != courses_.end(); ++iter)
 		output << iter->second;
+	SecureFileStore::writeProtectedText(path("Course.txt"), output.str());
 }
 
 void AssessmentRepository::saveActivities() const
 {
-	std::ofstream output = openOutput(path("Act.txt"));
+	std::ostringstream output;
 	output << activities_.size() << '\n';
 	for (std::multimap<std::string, ActivityRecord>::const_iterator iter = activities_.begin(); iter != activities_.end(); ++iter)
 		output << iter->second;
+	SecureFileStore::writeProtectedText(path("Act.txt"), output.str());
 }
 
 void AssessmentRepository::saveAdditions() const
 {
-	std::ofstream output = openOutput(path("Add.txt"));
+	std::ostringstream output;
 	output << additions_.size() << '\n';
 	for (std::multimap<std::string, ActivityRecord>::const_iterator iter = additions_.begin(); iter != additions_.end(); ++iter)
 		output << iter->second;
+	SecureFileStore::writeProtectedText(path("Add.txt"), output.str());
 }
 
 void AssessmentRepository::saveStudentMorals() const
 {
-	std::ofstream output = openOutput(path("Moral_s.txt"));
+	std::ostringstream output;
 	output << studentMoralsByReceiver_.size() << '\n';
 	for (std::multimap<std::string, MoralRecord>::const_iterator iter = studentMoralsByReceiver_.begin(); iter != studentMoralsByReceiver_.end(); ++iter)
 		writeMoralRecord(output, iter->second);
+	SecureFileStore::writeProtectedText(path("Moral_s.txt"), output.str());
 }
 
 void AssessmentRepository::saveTeacherMorals() const
 {
-	std::ofstream output = openOutput(path("Moral_t.txt"));
+	std::ostringstream output;
 	output << teacherMorals_.size() << '\n';
 	for (std::map<std::string, MoralRecord>::const_iterator iter = teacherMorals_.begin(); iter != teacherMorals_.end(); ++iter)
 		writeMoralRecord(output, iter->second);
+	SecureFileStore::writeProtectedText(path("Moral_t.txt"), output.str());
 }
 
 void AssessmentRepository::saveTotals() const
 {
-	std::ofstream output = openOutput(path("Total.txt"));
+	std::ostringstream output;
 	output << totals_.size() << '\n';
 	for (std::map<std::string, StudentScore>::const_iterator iter = totals_.begin(); iter != totals_.end(); ++iter)
 		output << iter->second;
+	SecureFileStore::writeProtectedText(path("Total.txt"), output.str());
 }
 
 std::map<std::string, UserRecord>& AssessmentRepository::users() { return users_; }
