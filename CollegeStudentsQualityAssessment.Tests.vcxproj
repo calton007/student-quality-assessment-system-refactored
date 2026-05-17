@@ -13,8 +13,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{F4A0F8D6-1AA1-48A7-B1D4-1A1AC1AB4A3D}</ProjectGuid>
-    <RootNamespace>CollegeStudentsQualityAssessment</RootNamespace>
+    <ProjectGuid>{9B36C915-79B1-44E4-9B2D-85E7BA34D37E}</ProjectGuid>
+    <RootNamespace>CollegeStudentsQualityAssessmentTests</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -32,16 +32,6 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -75,7 +65,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="tests\Tests.cpp" />
     <ClCompile Include="src\domain\ActivityRecord.cpp" />
     <ClCompile Include="src\domain\CourseRecord.cpp" />
     <ClCompile Include="src\domain\MoralRecord.cpp" />
@@ -92,12 +82,6 @@
     <ClCompile Include="src\service\ScoreCalculator.cpp" />
     <ClCompile Include="src\service\ScoreService.cpp" />
     <ClCompile Include="src\service\TotalValidation.cpp" />
-    <ClCompile Include="src\ui\ConsoleInput.cpp" />
-    <ClCompile Include="src\ui\ConsoleApp.cpp" />
-    <ClCompile Include="src\ui\ConsoleView.cpp" />
-    <ClCompile Include="src\ui\GroupConsole.cpp" />
-    <ClCompile Include="src\ui\StudentConsole.cpp" />
-    <ClCompile Include="src\ui\TeacherConsole.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\domain\ActivityRecord.h" />
@@ -116,22 +100,6 @@
     <ClInclude Include="src\service\ScoreCalculator.h" />
     <ClInclude Include="src\service\ScoreService.h" />
     <ClInclude Include="src\service\TotalValidation.h" />
-    <ClInclude Include="src\ui\ConsoleApp.h" />
-    <ClInclude Include="src\ui\ConsoleInput.h" />
-    <ClInclude Include="src\ui\ConsoleView.h" />
-    <ClInclude Include="src\ui\GroupConsole.h" />
-    <ClInclude Include="src\ui\StudentConsole.h" />
-    <ClInclude Include="src\ui\TeacherConsole.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Act.txt" />
-    <None Include="Add.txt" />
-    <None Include="Course.txt" />
-    <None Include="Moral_s.txt" />
-    <None Include="Moral_t.txt" />
-    <None Include="Total.txt" />
-    <None Include="User.txt" />
-    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
