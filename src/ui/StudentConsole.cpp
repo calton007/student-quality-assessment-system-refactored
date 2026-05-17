@@ -72,8 +72,7 @@ void StudentConsole::gradeMoral()
 			MoralRecord record;
 			record.receiverAccount = iter->first;
 			record.giverAccount = user_.account;
-			for (int index = 0; index < 9; ++index)
-				record.scores.push_back(ConsoleInput::score(0.0f, 10.0f));
+			record.scores = ConsoleInput::moralScores(ConsoleInput::studentMoralItems());
 			records.push_back(record);
 		}
 		MoralService(repository_).submitStudentMoral(user_.account, records);
@@ -100,9 +99,7 @@ void StudentConsole::modifyMoral()
 		if (row == 0)
 			return;
 		MoralRecord record = records[row - 1];
-		record.scores.clear();
-		for (int index = 0; index < 9; ++index)
-			record.scores.push_back(ConsoleInput::score(0.0f, 10.0f));
+		record.scores = ConsoleInput::moralScores(ConsoleInput::studentMoralItems());
 		service.updateStudentMoral(user_.account, row, record);
 		ConsoleView::message("修改成功!");
 	}
@@ -130,7 +127,7 @@ void StudentConsole::newActivity()
 {
 	try
 	{
-		ActivityService(repository_).createActivity(user_.account, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f));
+		ActivityService(repository_).createActivity(user_.account, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f, "活动分"));
 		markTotalNotGenerated(repository_);
 		ConsoleView::message("录入成功!");
 	}
@@ -149,7 +146,7 @@ void StudentConsole::modifyActivity()
 		int row = ConsoleInput::lineNumber(static_cast<int>(records.size()));
 		if (row == 0)
 			return;
-		service.updateStudentActivity(user_.account, row, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f));
+		service.updateStudentActivity(user_.account, row, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f, "活动分"));
 		ConsoleView::message("修改成功!");
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
@@ -186,6 +183,8 @@ void StudentConsole::searchMenu()
 	try
 	{
 		QueryService query(repository_);
+		if (!query.totalGenerated())
+			throw std::runtime_error("尚未生成综测成绩,无法查询!");
 		const StudentScore& score = query.scoreFor(user_.account);
 		ConsoleView::header();
 		ConsoleView::scores(std::vector<StudentScore>(1, score));

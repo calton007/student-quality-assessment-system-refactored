@@ -36,3 +36,13 @@ bool QueryService::isStudent(const std::string& account) const
 	std::map<std::string, UserRecord>::const_iterator iter = repository_.users().find(account);
 	return iter != repository_.users().end() && iter->second.role == UserRole::Student;
 }
+
+bool QueryService::totalGenerated() const
+{
+	for (std::map<std::string, UserRecord>::const_iterator iter = repository_.users().begin(); iter != repository_.users().end(); ++iter)
+	{
+		if (iter->second.role == UserRole::Group)
+			return iter->second.finishedMoralOrGeneratedTotal;
+	}
+	return false;
+}

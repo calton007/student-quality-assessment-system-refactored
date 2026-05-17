@@ -46,8 +46,7 @@ void TeacherConsole::gradeMoral()
 			MoralRecord record;
 			record.receiverAccount = iter->first;
 			record.giverAccount = user_.account;
-			for (int index = 0; index < 3; ++index)
-				record.scores.push_back(ConsoleInput::score(0.0f, 10.0f));
+			record.scores = ConsoleInput::moralScores(ConsoleInput::teacherMoralItems());
 			records.push_back(record);
 		}
 		MoralService(repository_).submitTeacherMoral(user_.account, records);
@@ -71,9 +70,7 @@ void TeacherConsole::modifyMoral()
 		if (row == 0)
 			return;
 		MoralRecord record = records[row - 1];
-		record.scores.clear();
-		for (int index = 0; index < 3; ++index)
-			record.scores.push_back(ConsoleInput::score(0.0f, 10.0f));
+		record.scores = ConsoleInput::moralScores(ConsoleInput::teacherMoralItems());
 		service.updateTeacherMoral(row, record);
 		ConsoleView::message("修改成功!");
 	}

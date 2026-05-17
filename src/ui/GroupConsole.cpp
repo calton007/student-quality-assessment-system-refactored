@@ -73,16 +73,20 @@ void GroupConsole::newStudy()
 			std::string account = ConsoleInput::text("录入学生的学号:");
 			if (!requireStudent(account))
 				return;
-			service.createCourse(account, ConsoleInput::text("课程名:"), ConsoleInput::score(0.5f, 10.0f), ConsoleInput::score(0.0f, 100.0f));
+			ConsoleView::message("请录入" + repository_.users()[account].name + "(" + account + ")的成绩");
+			service.createCourse(account, ConsoleInput::text("课程名:"), ConsoleInput::score(0.5f, 10.0f, "学分"), ConsoleInput::score(0.0f, 100.0f, "成绩"));
 		}
 		else if (mode == "1")
 		{
 			std::string name = ConsoleInput::text("课程名:");
-			float credit = ConsoleInput::score(0.5f, 10.0f);
+			float credit = ConsoleInput::score(0.5f, 10.0f, "学分");
 			for (std::map<std::string, UserRecord>::const_iterator iter = repository_.users().begin(); iter != repository_.users().end(); ++iter)
 			{
 				if (iter->second.role == UserRole::Student)
-					service.createCourse(iter->first, name, credit, ConsoleInput::score(0.0f, 100.0f));
+				{
+					ConsoleView::message("请录入" + iter->second.name + "(" + iter->first + ")的成绩");
+					service.createCourse(iter->first, name, credit, ConsoleInput::score(0.0f, 100.0f, "成绩"));
+				}
 			}
 		}
 		markTotalNotGenerated(repository_);
@@ -107,9 +111,10 @@ void GroupConsole::modifyStudy()
 		record.account = ConsoleInput::text("学号:");
 		if (!requireStudent(record.account))
 			return;
+		ConsoleView::message("请修改" + repository_.users()[record.account].name + "(" + record.account + ")的成绩");
 		record.name = ConsoleInput::text("课程名:");
-		record.credit = ConsoleInput::score(0.5f, 10.0f);
-		record.grade = ConsoleInput::score(0.0f, 100.0f);
+		record.credit = ConsoleInput::score(0.5f, 10.0f, "学分");
+		record.grade = ConsoleInput::score(0.0f, 100.0f, "成绩");
 		service.updateCourse(row, record);
 		markTotalNotGenerated(repository_);
 		ConsoleView::message("修改成功!");
@@ -156,13 +161,14 @@ void GroupConsole::newAddition()
 		AdditionService service(repository_);
 		std::string mode = ConsoleInput::text("1:录入集体项目 2:录入个人项目 其他:返回\n请选择:");
 		if (mode == "1")
-			service.createGroupAddition(ConsoleInput::text("项目名称:"), ConsoleInput::score(0.5f, 5.0f));
+			service.createGroupAddition(ConsoleInput::text("项目名称:"), ConsoleInput::score(0.5f, 5.0f, "附加分"));
 		else if (mode == "2")
 		{
 			std::string account = ConsoleInput::text("学号:");
 			if (!requireStudent(account))
 				return;
-			service.createPersonalAddition(account, ConsoleInput::text("项目名称:"), ConsoleInput::score(0.5f, 5.0f));
+			ConsoleView::message("请录入" + repository_.users()[account].name + "(" + account + ")的附加分");
+			service.createPersonalAddition(account, ConsoleInput::text("项目名称:"), ConsoleInput::score(0.5f, 5.0f, "附加分"));
 		}
 		markTotalNotGenerated(repository_);
 		ConsoleView::message("录入成功!");
@@ -186,8 +192,9 @@ void GroupConsole::modifyAddition()
 		record.account = ConsoleInput::text("学号:");
 		if (!requireStudent(record.account))
 			return;
+		ConsoleView::message("请修改" + repository_.users()[record.account].name + "(" + record.account + ")的附加分");
 		record.name = ConsoleInput::text("项目名称:");
-		record.grade = ConsoleInput::score(0.5f, 5.0f);
+		record.grade = ConsoleInput::score(0.5f, 5.0f, "附加分");
 		service.updateAddition(row, record);
 		markTotalNotGenerated(repository_);
 		ConsoleView::message("修改成功!");
@@ -245,6 +252,8 @@ void GroupConsole::searchMenu()
 	try
 	{
 		QueryService query(repository_);
+		if (!query.totalGenerated())
+			throw std::runtime_error("尚未生成综测成绩,无法查询!");
 		ConsoleView::header();
 		ConsoleView::scores(query.allScores());
 	}
