@@ -3,10 +3,10 @@
 class Teacher :public User
 {
 public:
-	Teacher(string a, string n, string p, char i,char y);//¹¹Ôìº¯Êı
-	Teacher(){}//¹¹Ôìº¯Êı
-	void MainMenu();//Ö÷²Ëµ¥
-	void MultiChoiceMenu(vector<string> Qs);//×Ó²Ëµ¥
-	void gradeMoral();//Ë¼ÏëÆ·µÂ´ò·Ö
-	void modifyMoral();//ĞŞ¸ÄË¼ÏëÆ·µÂ´ò·Ö	
+	Teacher(string a, string n, string p, char i,char y);//æ„é€ å‡½æ•°
+	Teacher(){}//æ„é€ å‡½æ•°
+	void MainMenu();//ä¸»èœå•
+	void MultiChoiceMenu(vector<string> Qs);//å­èœå•
+	void gradeMoral();//æ€æƒ³å“å¾·æ‰“åˆ†
+	void modifyMoral();//ä¿®æ”¹æ€æƒ³å“å¾·æ‰“åˆ†
 };

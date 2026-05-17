@@ -29,6 +29,6 @@ istream& operator>>(istream &in, Course &u)
 }
 ostream& operator<<(ostream &out, const Course &u)
 {
-	out << setw(10) << u.Account << setw(20) << u.Name << setw(8) << u.Credit << setw(8) << u.Grade << endl;
+	out << u.Account << '\t' << u.Name << '\t' << u.Credit << '\t' << u.Grade << endl;
 	return out;
 }
