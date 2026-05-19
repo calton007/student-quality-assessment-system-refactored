@@ -260,6 +260,49 @@ namespace
 		assert(output.str().find("请输入1确认或0取消") != std::string::npos);
 	}
 
+	void testTextRequiredReadsNonBlankInput()
+	{
+		std::istringstream input("课程\n");
+		std::ostringstream output;
+		std::streambuf* oldInput = std::cin.rdbuf(input.rdbuf());
+		std::streambuf* oldOutput = std::cout.rdbuf(output.rdbuf());
+		const std::string value = ConsoleInput::textRequired("课程名:");
+		std::cin.rdbuf(oldInput);
+		std::cout.rdbuf(oldOutput);
+
+		assert(value == "课程");
+		assert(output.str().find("课程名:") != std::string::npos);
+	}
+
+	void testOptionalTextCanCancel()
+	{
+		std::istringstream input("0\n活动\n");
+		std::ostringstream output;
+		std::streambuf* oldInput = std::cin.rdbuf(input.rdbuf());
+		std::streambuf* oldOutput = std::cout.rdbuf(output.rdbuf());
+		const std::string cancelled = ConsoleInput::optionalText("活动名称:");
+		const std::string value = ConsoleInput::optionalText("活动名称:");
+		std::cin.rdbuf(oldInput);
+		std::cout.rdbuf(oldOutput);
+
+		assert(cancelled.empty());
+		assert(value == "活动");
+	}
+
+	void testChoiceRetriesInvalidInput()
+	{
+		std::istringstream input("abc\n3\n2\n");
+		std::ostringstream output;
+		std::streambuf* oldInput = std::cin.rdbuf(input.rdbuf());
+		std::streambuf* oldOutput = std::cout.rdbuf(output.rdbuf());
+		const int value = ConsoleInput::choice("1:批量 2:单个", 2);
+		std::cin.rdbuf(oldInput);
+		std::cout.rdbuf(oldOutput);
+
+		assert(value == 2);
+		assert(output.str().find("请输入正确的菜单编号") != std::string::npos);
+	}
+
 	void testMenuShowsLocationAndUser()
 	{
 		UserRecord user;
@@ -669,6 +712,26 @@ namespace
 		assert(query.isStudent("10002"));
 		assert(query.userName("10002") == "学生1");
 	}
+
+	void testCancelledModeDoesNotSave()
+	{
+		const std::filesystem::path directory = prepareRepositoryData();
+		AssessmentRepository repository(directory.string());
+		repository.loadAll();
+		const size_t originalCount = repository.courses().size();
+
+		std::istringstream input("0\n");
+		std::ostringstream output;
+		std::streambuf* oldInput = std::cin.rdbuf(input.rdbuf());
+		std::streambuf* oldOutput = std::cout.rdbuf(output.rdbuf());
+		const int mode = ConsoleInput::choice("1:批量录入成绩 2:单个录入成绩", 2);
+		std::cin.rdbuf(oldInput);
+		std::cout.rdbuf(oldOutput);
+
+		if (mode != 0)
+			CourseService(repository).createCourse("10002", "不应保存", 1.0f, 80.0f);
+		assert(repository.courses().size() == originalCount);
+	}
 }
 
 int main()
@@ -685,6 +748,9 @@ int main()
 	testMenuInputRetries();
 	testScoreInputBoundaries();
 	testConfirmInput();
+	testTextRequiredReadsNonBlankInput();
+	testOptionalTextCanCancel();
+	testChoiceRetriesInvalidInput();
 	testMenuShowsLocationAndUser();
 	testOperationText();
 	testPasswordHasher();
@@ -697,5 +763,6 @@ int main()
 	testRepositoryAuthAndScoreService();
 	testDefaultStateAndTotalQueryGate();
 	testMutationServices();
+	testCancelledModeDoesNotSave();
 	return 0;
 }

@@ -49,8 +49,8 @@ UserRecord ConsoleApp::login()
 	while (true)
 	{
 		ConsoleView::header();
-		const std::string account = ConsoleInput::text("账号:");
-		const std::string password = ConsoleInput::text("密码:");
+		const std::string account = ConsoleInput::textRequired("账号:");
+		const std::string password = ConsoleInput::textRequired("密码:");
 		try
 		{
 			UserRecord user = auth.login(account, password);

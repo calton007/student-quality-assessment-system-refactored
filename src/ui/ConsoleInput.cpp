@@ -10,12 +10,17 @@
 
 char ConsoleInput::menuChoice(int maxChoice)
 {
+	return static_cast<char>('0' + choice("请选择", maxChoice));
+}
+
+int ConsoleInput::choice(const std::string& prompt, int maxChoice)
+{
 	while (true)
 	{
-		std::cout << "请选择(返回请输入0):";
+		std::cout << prompt << "(返回请输入0):";
 		int value = 0;
 		if (std::cin >> value && value >= 0 && value <= maxChoice)
-			return static_cast<char>('0' + value);
+			return value;
 		std::cin.clear();
 		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
 		std::cout << ConsoleTheme::invalidMenuChoice() << std::endl;
@@ -115,9 +120,30 @@ const std::vector<std::string>& ConsoleInput::teacherMoralItems()
 
 std::string ConsoleInput::text(const std::string& prompt)
 {
+	return textRequired(prompt);
+}
+
+std::string ConsoleInput::textRequired(const std::string& prompt)
+{
+	while (true)
+	{
+		std::cout << prompt;
+		std::string value;
+		if (std::cin >> value && !value.empty())
+			return value;
+		std::cin.clear();
+		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+		std::cout << "输入不能为空!" << std::endl;
+	}
+}
+
+std::string ConsoleInput::optionalText(const std::string& prompt)
+{
 	std::cout << prompt;
 	std::string value;
 	std::cin >> value;
+	if (value == "0")
+		return "";
 	return value;
 }
 

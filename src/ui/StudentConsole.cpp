@@ -132,7 +132,10 @@ void StudentConsole::newActivity()
 	{
 		ConsoleView::menu("学生首页 / 课外活动项目 / 录入课外活动", user_, std::vector<std::string>());
 		ConsoleView::operation(user_.name, user_.account, "课外活动", "录入");
-		ActivityService(repository_).createActivity(user_.account, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f, "活动分"));
+		std::string name = ConsoleInput::optionalText("活动名称(返回请输入0):");
+		if (name.empty())
+			return;
+		ActivityService(repository_).createActivity(user_.account, name, ConsoleInput::score(0.5f, 20.0f, "活动分"));
 		markTotalNotGenerated(repository_);
 		ConsoleView::message("录入成功!");
 	}
@@ -152,7 +155,10 @@ void StudentConsole::modifyActivity()
 		if (row == 0)
 			return;
 		ConsoleView::operation(user_.name, user_.account, "课外活动", "修改");
-		service.updateStudentActivity(user_.account, row, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f, "活动分"));
+		std::string name = ConsoleInput::optionalText("活动名称(返回请输入0):");
+		if (name.empty())
+			return;
+		service.updateStudentActivity(user_.account, row, name, ConsoleInput::score(0.5f, 20.0f, "活动分"));
 		ConsoleView::message("修改成功!");
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
@@ -205,7 +211,7 @@ void StudentConsole::changePassword()
 	try
 	{
 		ConsoleView::menu("学生首页 / 修改密码", user_, std::vector<std::string>());
-		AuthService(repository_).changePassword(user_.account, ConsoleInput::text("请输入原密码:"), ConsoleInput::text("请输入新密码:"));
+		AuthService(repository_).changePassword(user_.account, ConsoleInput::textRequired("请输入原密码:"), ConsoleInput::textRequired("请输入新密码:"));
 		ConsoleView::message("修改成功!");
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }

@@ -84,7 +84,7 @@ void TeacherConsole::changePassword()
 	try
 	{
 		ConsoleView::menu("辅导员首页 / 修改密码", user_, std::vector<std::string>());
-		AuthService(repository_).changePassword(user_.account, ConsoleInput::text("请输入原密码:"), ConsoleInput::text("请输入新密码:"));
+		AuthService(repository_).changePassword(user_.account, ConsoleInput::textRequired("请输入原密码:"), ConsoleInput::textRequired("请输入新密码:"));
 		ConsoleView::message("修改成功!");
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }

@@ -70,18 +70,27 @@ void GroupConsole::newStudy()
 	{
 		ConsoleView::menu("测评小组首页 / 学习成绩管理 / 录入学习成绩", user_, std::vector<std::string>());
 		CourseService service(repository_);
-		std::string mode = ConsoleInput::text("1:批量录入成绩 2:单个录入成绩 其他:返回\n请选择:");
-		if (mode == "2")
+		int mode = ConsoleInput::choice("1:批量录入成绩 2:单个录入成绩", 2);
+		if (mode == 0)
+			return;
+		if (mode == 2)
 		{
-			std::string account = ConsoleInput::text("录入学生的学号:");
+			std::string account = ConsoleInput::optionalText("录入学生的学号(返回请输入0):");
+			if (account.empty())
+				return;
 			if (!requireStudent(account))
 				return;
 			ConsoleView::operation(repository_.users()[account].name, account, "学习成绩", "录入");
-			service.createCourse(account, ConsoleInput::text("课程名:"), ConsoleInput::score(0.5f, 10.0f, "学分"), ConsoleInput::score(0.0f, 100.0f, "成绩"));
+			std::string courseName = ConsoleInput::optionalText("课程名(返回请输入0):");
+			if (courseName.empty())
+				return;
+			service.createCourse(account, courseName, ConsoleInput::score(0.5f, 10.0f, "学分"), ConsoleInput::score(0.0f, 100.0f, "成绩"));
 		}
-		else if (mode == "1")
+		else if (mode == 1)
 		{
-			std::string name = ConsoleInput::text("课程名:");
+			std::string name = ConsoleInput::optionalText("课程名(返回请输入0):");
+			if (name.empty())
+				return;
 			float credit = ConsoleInput::score(0.5f, 10.0f, "学分");
 			for (std::map<std::string, UserRecord>::const_iterator iter = repository_.users().begin(); iter != repository_.users().end(); ++iter)
 			{
@@ -111,11 +120,15 @@ void GroupConsole::modifyStudy()
 		if (row == 0)
 			return;
 		CourseRecord record;
-		record.account = ConsoleInput::text("学号:");
+		record.account = ConsoleInput::optionalText("学号(返回请输入0):");
+		if (record.account.empty())
+			return;
 		if (!requireStudent(record.account))
 			return;
 		ConsoleView::operation(repository_.users()[record.account].name, record.account, "学习成绩", "修改");
-		record.name = ConsoleInput::text("课程名:");
+		record.name = ConsoleInput::optionalText("课程名(返回请输入0):");
+		if (record.name.empty())
+			return;
 		record.credit = ConsoleInput::score(0.5f, 10.0f, "学分");
 		record.grade = ConsoleInput::score(0.0f, 100.0f, "成绩");
 		service.updateCourse(row, record);
@@ -165,16 +178,28 @@ void GroupConsole::newAddition()
 	{
 		ConsoleView::menu("测评小组首页 / 附加分管理 / 录入附加分", user_, std::vector<std::string>());
 		AdditionService service(repository_);
-		std::string mode = ConsoleInput::text("1:录入集体项目 2:录入个人项目 其他:返回\n请选择:");
-		if (mode == "1")
-			service.createGroupAddition(ConsoleInput::text("项目名称:"), ConsoleInput::score(0.5f, 5.0f, "附加分"));
-		else if (mode == "2")
+		int mode = ConsoleInput::choice("1:录入集体项目 2:录入个人项目", 2);
+		if (mode == 0)
+			return;
+		if (mode == 1)
 		{
-			std::string account = ConsoleInput::text("学号:");
+			std::string name = ConsoleInput::optionalText("项目名称(返回请输入0):");
+			if (name.empty())
+				return;
+			service.createGroupAddition(name, ConsoleInput::score(0.5f, 5.0f, "附加分"));
+		}
+		else if (mode == 2)
+		{
+			std::string account = ConsoleInput::optionalText("学号(返回请输入0):");
+			if (account.empty())
+				return;
 			if (!requireStudent(account))
 				return;
 			ConsoleView::operation(repository_.users()[account].name, account, "附加分", "录入");
-			service.createPersonalAddition(account, ConsoleInput::text("项目名称:"), ConsoleInput::score(0.5f, 5.0f, "附加分"));
+			std::string name = ConsoleInput::optionalText("项目名称(返回请输入0):");
+			if (name.empty())
+				return;
+			service.createPersonalAddition(account, name, ConsoleInput::score(0.5f, 5.0f, "附加分"));
 		}
 		markTotalNotGenerated(repository_);
 		ConsoleView::message("录入成功!");
@@ -195,11 +220,15 @@ void GroupConsole::modifyAddition()
 		if (row == 0)
 			return;
 		ActivityRecord record;
-		record.account = ConsoleInput::text("学号:");
+		record.account = ConsoleInput::optionalText("学号(返回请输入0):");
+		if (record.account.empty())
+			return;
 		if (!requireStudent(record.account))
 			return;
 		ConsoleView::operation(repository_.users()[record.account].name, record.account, "附加分", "修改");
-		record.name = ConsoleInput::text("项目名称:");
+		record.name = ConsoleInput::optionalText("项目名称(返回请输入0):");
+		if (record.name.empty())
+			return;
 		record.grade = ConsoleInput::score(0.5f, 5.0f, "附加分");
 		service.updateAddition(row, record);
 		markTotalNotGenerated(repository_);
@@ -240,11 +269,13 @@ void GroupConsole::checkActivity()
 		int row = ConsoleInput::lineNumber(static_cast<int>(records.size()));
 		if (row == 0)
 			return;
-		char choice = ConsoleInput::text("1:审核通过  2:审核未通过\n请选择:")[0];
+		int choice = ConsoleInput::choice("1:审核通过 2:审核未通过", 2);
+		if (choice == 0)
+			return;
 		ConsoleView::operation(repository_.users()[records[row - 1].account].name, records[row - 1].account, "课外活动", "审核");
-		if (choice == '1')
+		if (choice == 1)
 			service.approveActivity(row);
-		else if (choice == '2')
+		else if (choice == 2)
 			service.rejectActivity(row);
 		else
 			throw std::runtime_error("您的输入有误!");
@@ -297,7 +328,7 @@ void GroupConsole::changePassword()
 	try
 	{
 		ConsoleView::menu("测评小组首页 / 修改密码", user_, std::vector<std::string>());
-		AuthService(repository_).changePassword(user_.account, ConsoleInput::text("请输入原密码:"), ConsoleInput::text("请输入新密码:"));
+		AuthService(repository_).changePassword(user_.account, ConsoleInput::textRequired("请输入原密码:"), ConsoleInput::textRequired("请输入新密码:"));
 		ConsoleView::message("修改成功!");
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
