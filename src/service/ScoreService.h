@@ -18,6 +18,7 @@ public:
 
 	TotalBuildResult validateBeforeBuild() const;
 	void buildTotal();
+	void revokeTotal();
 
 private:
 	void ensureTotalRecords();
@@ -25,6 +26,7 @@ private:
 	void buildActivity();
 	void buildAddition();
 	void buildGpaAndStudy();
+	void clearTotals();
 
 	AssessmentRepository& repository_;
 };

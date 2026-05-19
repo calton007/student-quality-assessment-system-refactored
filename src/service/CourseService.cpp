@@ -2,6 +2,15 @@
 
 #include <stdexcept>
 
+namespace
+{
+	void requireTotalNotGenerated(const AssessmentRepository& repository)
+	{
+		if (repository.status().totalGenerated)
+			throw std::runtime_error("综测成绩已生成，请先撤销后再修改");
+	}
+}
+
 CourseService::CourseService(AssessmentRepository& repository)
 	: repository_(repository)
 {
@@ -17,6 +26,7 @@ std::vector<CourseRecord> CourseService::listAll() const
 
 void CourseService::createCourse(const std::string& account, const std::string& name, float credit, float grade)
 {
+	requireTotalNotGenerated(repository_);
 	CourseRecord record;
 	record.account = account;
 	record.name = name;
@@ -28,12 +38,14 @@ void CourseService::createCourse(const std::string& account, const std::string& 
 
 void CourseService::updateCourse(int row, const CourseRecord& replacement)
 {
+	requireTotalNotGenerated(repository_);
 	findByGlobalRow(row)->second = replacement;
 	repository_.saveCourses();
 }
 
 void CourseService::deleteCourse(int row)
 {
+	requireTotalNotGenerated(repository_);
 	repository_.courses().erase(findByGlobalRow(row));
 	repository_.saveCourses();
 }

@@ -2,6 +2,15 @@
 
 #include <stdexcept>
 
+namespace
+{
+	void requireTotalNotGenerated(const AssessmentRepository& repository)
+	{
+		if (repository.status().totalGenerated)
+			throw std::runtime_error("综测成绩已生成，请先撤销后再修改");
+	}
+}
+
 MoralService::MoralService(AssessmentRepository& repository)
 	: repository_(repository)
 {
@@ -32,6 +41,9 @@ std::vector<MoralRecord> MoralService::teacherMorals() const
 
 void MoralService::submitStudentMoral(const std::string& giverAccount, const std::vector<MoralRecord>& records)
 {
+	requireTotalNotGenerated(repository_);
+	if (repository_.studentMoralsByGiver().find(giverAccount) != repository_.studentMoralsByGiver().end())
+		throw std::runtime_error("已提交过学生互评，不能重复提交");
 	for (std::vector<MoralRecord>::const_iterator iter = records.begin(); iter != records.end(); ++iter)
 	{
 		MoralRecord record = *iter;
@@ -39,26 +51,28 @@ void MoralService::submitStudentMoral(const std::string& giverAccount, const std
 		repository_.studentMoralsByReceiver().insert(std::pair<std::string, MoralRecord>(record.receiverAccount, record));
 		repository_.studentMoralsByGiver().insert(std::pair<std::string, MoralRecord>(record.giverAccount, record));
 	}
-	repository_.users()[giverAccount].finishedMoralOrGeneratedTotal = true;
 	repository_.saveStudentMorals();
-	repository_.saveUsers();
+	repository_.status().studentMoralFinishedAccounts.insert(giverAccount);
+	repository_.saveStatus();
 }
 
 void MoralService::submitTeacherMoral(const std::string& teacherAccount, const std::vector<MoralRecord>& records)
 {
+	requireTotalNotGenerated(repository_);
 	for (std::vector<MoralRecord>::const_iterator iter = records.begin(); iter != records.end(); ++iter)
 	{
 		MoralRecord record = *iter;
 		record.giverAccount = teacherAccount;
 		repository_.teacherMorals()[record.receiverAccount] = record;
 	}
-	repository_.users()[teacherAccount].finishedMoralOrGeneratedTotal = true;
 	repository_.saveTeacherMorals();
-	repository_.saveUsers();
+	repository_.status().teacherMoralFinishedAccounts.insert(teacherAccount);
+	repository_.saveStatus();
 }
 
 void MoralService::updateStudentMoral(const std::string& giverAccount, int row, const MoralRecord& record)
 {
+	requireTotalNotGenerated(repository_);
 	std::multimap<std::string, MoralRecord>::iterator giverIter = findStudentMoralByGiverRow(giverAccount, row);
 	const std::string oldReceiver = giverIter->second.receiverAccount;
 	giverIter->second = record;
@@ -79,6 +93,7 @@ void MoralService::updateStudentMoral(const std::string& giverAccount, int row, 
 
 void MoralService::updateTeacherMoral(int row, const MoralRecord& record)
 {
+	requireTotalNotGenerated(repository_);
 	std::map<std::string, MoralRecord>::iterator iter = findTeacherMoralByRow(row);
 	repository_.teacherMorals().erase(iter);
 	repository_.teacherMorals()[record.receiverAccount] = record;

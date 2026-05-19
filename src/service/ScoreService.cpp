@@ -28,7 +28,7 @@ TotalBuildResult ScoreService::validateBeforeBuild() const
 		TotalValidation::StudentReadiness readiness;
 		readiness.account = iter->first;
 		readiness.name = iter->second.name;
-		readiness.moralFinished = iter->second.finishedMoralOrGeneratedTotal;
+		readiness.moralFinished = repository_.status().studentMoralFinishedAccounts.find(iter->first) != repository_.status().studentMoralFinishedAccounts.end();
 		readiness.hasTotalRecord = repository_.totals().find(iter->first) != repository_.totals().end();
 		readiness.hasCourse = repository_.courses().find(iter->first) != repository_.courses().end();
 		readiness.hasTeacherMoral = repository_.teacherMorals().find(iter->first) != repository_.teacherMorals().end();
@@ -51,6 +51,8 @@ TotalBuildResult ScoreService::validateBeforeBuild() const
 
 void ScoreService::buildTotal()
 {
+	if (repository_.status().totalGenerated)
+		throw std::runtime_error("综测成绩已生成，请先撤销后再生成");
 	TotalBuildResult readiness = validateBeforeBuild();
 	if (!readiness.ready)
 		throw std::runtime_error("cannot build total before required data is complete");
@@ -72,6 +74,18 @@ void ScoreService::buildTotal()
 		repository_.totals()[iter->first].rank = iter->second;
 
 	repository_.saveTotals();
+	repository_.status().totalGenerated = true;
+	repository_.saveStatus();
+}
+
+void ScoreService::revokeTotal()
+{
+	if (!repository_.status().totalGenerated)
+		throw std::runtime_error("尚未生成综测成绩，无需撤销");
+	clearTotals();
+	repository_.saveTotals();
+	repository_.status().totalGenerated = false;
+	repository_.saveStatus();
 }
 
 void ScoreService::ensureTotalRecords()
@@ -160,5 +174,20 @@ void ScoreService::buildGpaAndStudy()
 		StudentScore& score = repository_.totals()[user->first];
 		score.gpa = ScoreCalculator::gpa(courses);
 		score.study = ScoreCalculator::studyScore(score.gpa);
+	}
+}
+
+void ScoreService::clearTotals()
+{
+	ensureTotalRecords();
+	for (std::map<std::string, StudentScore>::iterator iter = repository_.totals().begin(); iter != repository_.totals().end(); ++iter)
+	{
+		iter->second.study = 0.0f;
+		iter->second.gpa = 0.0f;
+		iter->second.activity = 0.0f;
+		iter->second.moral = 0.0f;
+		iter->second.addition = 0.0f;
+		iter->second.total = 0.0f;
+		iter->second.rank = 0;
 	}
 }

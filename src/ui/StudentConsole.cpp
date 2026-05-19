@@ -9,19 +9,6 @@
 
 #include <iostream>
 
-namespace
-{
-	void markTotalNotGenerated(AssessmentRepository& repository)
-	{
-		for (std::map<std::string, UserRecord>::iterator iter = repository.users().begin(); iter != repository.users().end(); ++iter)
-		{
-			if (iter->second.role == UserRole::Group)
-				iter->second.finishedMoralOrGeneratedTotal = false;
-		}
-		repository.saveUsers();
-	}
-}
-
 StudentConsole::StudentConsole(AssessmentRepository& repository, const UserRecord& user)
 	: repository_(repository), user_(user)
 {
@@ -62,7 +49,7 @@ void StudentConsole::gradeMoral()
 {
 	try
 	{
-		if (repository_.users()[user_.account].finishedMoralOrGeneratedTotal)
+		if (repository_.status().studentMoralFinishedAccounts.find(user_.account) != repository_.status().studentMoralFinishedAccounts.end())
 			throw std::runtime_error("已打分!");
 		std::vector<MoralRecord> records;
 		for (std::map<std::string, UserRecord>::const_iterator iter = repository_.users().begin(); iter != repository_.users().end(); ++iter)
@@ -136,7 +123,6 @@ void StudentConsole::newActivity()
 		if (name.empty())
 			return;
 		ActivityService(repository_).createActivity(user_.account, name, ConsoleInput::score(0.5f, 20.0f, "活动分"));
-		markTotalNotGenerated(repository_);
 		ConsoleView::message("录入成功!");
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }

@@ -81,6 +81,7 @@
     <ClCompile Include="src\app\AppConfig.cpp" />
     <ClCompile Include="src\app\AppLogger.cpp" />
     <ClCompile Include="src\domain\ActivityRecord.cpp" />
+    <ClCompile Include="src\domain\AssessmentStatus.cpp" />
     <ClCompile Include="src\domain\CourseRecord.cpp" />
     <ClCompile Include="src\domain\MoralRecord.cpp" />
     <ClCompile Include="src\domain\StudentScore.cpp" />
@@ -113,6 +114,7 @@
     <ClInclude Include="src\app\AppConfig.h" />
     <ClInclude Include="src\app\AppLogger.h" />
     <ClInclude Include="src\domain\ActivityRecord.h" />
+    <ClInclude Include="src\domain\AssessmentStatus.h" />
     <ClInclude Include="src\domain\CourseRecord.h" />
     <ClInclude Include="src\domain\MoralRecord.h" />
     <ClInclude Include="src\domain\StudentScore.h" />

@@ -2,6 +2,15 @@
 
 #include <stdexcept>
 
+namespace
+{
+	void requireTotalNotGenerated(const AssessmentRepository& repository)
+	{
+		if (repository.status().totalGenerated)
+			throw std::runtime_error("综测成绩已生成，请先撤销后再修改");
+	}
+}
+
 AdditionService::AdditionService(AssessmentRepository& repository)
 	: repository_(repository)
 {
@@ -17,6 +26,7 @@ std::vector<ActivityRecord> AdditionService::listAll() const
 
 void AdditionService::createPersonalAddition(const std::string& account, const std::string& name, float grade)
 {
+	requireTotalNotGenerated(repository_);
 	ActivityRecord record;
 	record.account = account;
 	record.name = name;
@@ -38,6 +48,7 @@ void AdditionService::createGroupAddition(const std::string& name, float grade)
 
 void AdditionService::updateAddition(int row, const ActivityRecord& replacement)
 {
+	requireTotalNotGenerated(repository_);
 	ActivityRecord record = replacement;
 	record.type = "附加分";
 	record.status = ReviewStatus::Approved;
@@ -47,6 +58,7 @@ void AdditionService::updateAddition(int row, const ActivityRecord& replacement)
 
 void AdditionService::deleteAddition(int row)
 {
+	requireTotalNotGenerated(repository_);
 	repository_.additions().erase(findByGlobalRow(row));
 	repository_.saveAdditions();
 }

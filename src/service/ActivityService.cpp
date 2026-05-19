@@ -2,6 +2,15 @@
 
 #include <stdexcept>
 
+namespace
+{
+	void requireTotalNotGenerated(const AssessmentRepository& repository)
+	{
+		if (repository.status().totalGenerated)
+			throw std::runtime_error("综测成绩已生成，请先撤销后再修改");
+	}
+}
+
 ActivityService::ActivityService(AssessmentRepository& repository)
 	: repository_(repository)
 {
@@ -27,6 +36,7 @@ std::vector<ActivityRecord> ActivityService::listAll() const
 
 void ActivityService::createActivity(const std::string& account, const std::string& name, float grade)
 {
+	requireTotalNotGenerated(repository_);
 	ActivityRecord record;
 	record.account = account;
 	record.name = name;
@@ -39,6 +49,7 @@ void ActivityService::createActivity(const std::string& account, const std::stri
 
 void ActivityService::updateStudentActivity(const std::string& account, int row, const std::string& name, float grade)
 {
+	requireTotalNotGenerated(repository_);
 	std::multimap<std::string, ActivityRecord>::iterator iter = findStudentActivity(account, row);
 	if (iter->second.status == ReviewStatus::Approved)
 		throw std::runtime_error("审核已通过项目不能修改");
@@ -50,6 +61,7 @@ void ActivityService::updateStudentActivity(const std::string& account, int row,
 
 void ActivityService::deleteStudentActivity(const std::string& account, int row)
 {
+	requireTotalNotGenerated(repository_);
 	std::multimap<std::string, ActivityRecord>::iterator iter = findStudentActivity(account, row);
 	if (iter->second.status == ReviewStatus::Approved)
 		throw std::runtime_error("审核已通过项目不能删除");
@@ -59,6 +71,7 @@ void ActivityService::deleteStudentActivity(const std::string& account, int row)
 
 void ActivityService::approveActivity(int row)
 {
+	requireTotalNotGenerated(repository_);
 	std::multimap<std::string, ActivityRecord>::iterator iter = findActivityByGlobalRow(row);
 	iter->second.status = ReviewStatus::Approved;
 	repository_.saveActivities();
@@ -66,6 +79,7 @@ void ActivityService::approveActivity(int row)
 
 void ActivityService::rejectActivity(int row)
 {
+	requireTotalNotGenerated(repository_);
 	std::multimap<std::string, ActivityRecord>::iterator iter = findActivityByGlobalRow(row);
 	iter->second.status = ReviewStatus::Rejected;
 	iter->second.grade = 0.0f;

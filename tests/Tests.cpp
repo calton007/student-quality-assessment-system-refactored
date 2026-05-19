@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -27,6 +28,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#ifdef _MSC_VER
+#include <crtdbg.h>
+#endif
 
 namespace
 {
@@ -154,8 +159,22 @@ namespace
 		assert(errors[1] == "学生2缺少综测总表记录");
 		assert(errors[2] == "学生2缺少课程成绩");
 		assert(errors[3] == "学生2缺少班主任思想品德评分");
-		assert(errors[4] == "学生2学生互评记录不完整");
+		assert(errors[4] == "学生2学生互评记录缺失");
 		assert(errors[5] == "10003存在未审核的课外活动");
+
+		students.clear();
+		TotalValidation::StudentReadiness duplicate;
+		duplicate.account = "10002";
+		duplicate.name = "学生1";
+		duplicate.moralFinished = true;
+		duplicate.hasTotalRecord = true;
+		duplicate.hasCourse = true;
+		duplicate.hasTeacherMoral = true;
+		duplicate.studentMoralCount = 3;
+		students.push_back(duplicate);
+		errors = TotalValidation::validateReadiness(students, 2, std::vector<std::string>());
+		assert(errors.size() == 1);
+		assert(errors[0] == "学生1学生互评记录重复");
 	}
 
 	void testMoralItemText()
@@ -444,7 +463,7 @@ namespace
 		std::filesystem::create_directories(runtimeDirectory);
 		writeFile(userFile,
 			"1\n"
-			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\t0\n");
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n");
 		writeFile(runtimeDirectory / "Course.txt",
 			"1\n"
 			"10002\t数学\t2\t90\n");
@@ -497,9 +516,16 @@ namespace
 		const std::filesystem::path directory = cleanTestDirectory("test-data");
 		writeFile(directory / "User.txt",
 			"3\n"
-			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\t0\n"
-			"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\t1\n"
-			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\t1\n");
+			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\n"
+			"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\n"
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n");
+		writeFile(directory / "AssessmentStatus.txt",
+			"SQAS-STATUS-1\n"
+			"total_generated 0\n"
+			"student_moral_finished 1\n"
+			"10002\n"
+			"teacher_moral_finished 1\n"
+			"10001\n");
 		writeFile(directory / "Course.txt",
 			"1\n"
 			"10002\t数学\t2\t90\n");
@@ -570,9 +596,9 @@ namespace
 		const std::filesystem::path directory = cleanTestDirectory("test-default-state");
 		writeFile(directory / "User.txt",
 			"3\n"
-			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\t0\n"
-			"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\t0\n"
-			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\t0\n");
+			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\n"
+			"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\n"
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n");
 		writeFile(directory / "Course.txt", "0\n");
 		writeFile(directory / "Act.txt", "0\n");
 		writeFile(directory / "Add.txt", "0\n");
@@ -583,7 +609,7 @@ namespace
 		AssessmentRepository repository(directory.string());
 		repository.loadAll();
 
-		assert(!repository.users().find("10002")->second.finishedMoralOrGeneratedTotal);
+		assert(repository.status().studentMoralFinishedAccounts.empty());
 		QueryService query(repository);
 		assert(!query.totalGenerated());
 		assert(repository.totals().count("10002") == 1);
@@ -593,9 +619,9 @@ namespace
 		for (int index = 0; index < 9; ++index)
 			record.scores.push_back(10.0f);
 		MoralService(repository).submitStudentMoral("10002", std::vector<MoralRecord>(1, record));
-		assert(repository.users().find("10002")->second.finishedMoralOrGeneratedTotal);
+		assert(repository.status().studentMoralFinishedAccounts.count("10002") == 1);
 
-		repository.users().find("10000")->second.finishedMoralOrGeneratedTotal = true;
+		repository.status().totalGenerated = true;
 		assert(query.totalGenerated());
 	}
 
@@ -604,9 +630,9 @@ namespace
 		const std::filesystem::path directory = cleanTestDirectory("test-missing-runtime-files");
 		writeFile(directory / "User.txt",
 			"3\n"
-			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\t0\n"
-			"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\t0\n"
-			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\t0\n");
+			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\n"
+			"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\n"
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n");
 
 		AssessmentRepository repository(directory.string());
 		repository.loadAll();
@@ -618,6 +644,82 @@ namespace
 		assert(repository.studentMoralsByReceiver().empty());
 		assert(repository.teacherMorals().empty());
 		assert(repository.totals().count("10002") == 1);
+	}
+
+	void testLegacyUserStatusMigration()
+	{
+		const std::filesystem::path directory = cleanTestDirectory("test-legacy-user-status-migration");
+		writeFile(directory / "User.txt",
+			"3\n"
+			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\t1\n"
+			"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\t1\n"
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\t1\n");
+		writeFile(directory / "Moral_s.txt",
+			"1\n"
+			"10002\t10002\t10\t10\t10\t10\t10\t10\t10\t10\t10\n");
+		writeFile(directory / "Moral_t.txt",
+			"1\n"
+			"10002\t10001\t10\t10\t10\n");
+		writeFile(directory / "Total.txt",
+			"1\n"
+			"10002\t100\t4\t10\t100\t5\t91.5\t1\n");
+
+		AssessmentRepository repository(directory.string());
+		repository.loadAll();
+
+		assert(repository.status().totalGenerated);
+		assert(repository.status().studentMoralFinishedAccounts.count("10002") == 1);
+		assert(repository.status().teacherMoralFinishedAccounts.count("10001") == 1);
+		assert(readFile(directory / "User.txt").find("\t0\t1") == std::string::npos);
+		const std::string statusFile = readFile(directory / "AssessmentStatus.txt");
+		assert(statusFile.find("SQAS-DPAPI-1\n") == 0);
+		assert(statusFile.find("student_moral_finished") == std::string::npos);
+	}
+
+	void testMalformedStatusFileFails()
+	{
+		const std::filesystem::path directory = cleanTestDirectory("test-malformed-status-file");
+		writeFile(directory / "User.txt",
+			"1\n"
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n");
+		writeFile(directory / "AssessmentStatus.txt", "bad\n");
+
+		AssessmentRepository repository(directory.string());
+		bool thrown = false;
+		try
+		{
+			repository.loadAll();
+		}
+		catch (const std::runtime_error&)
+		{
+			thrown = true;
+		}
+		assert(thrown);
+	}
+
+	void testDuplicateStudentMoralFileFails()
+	{
+		const std::filesystem::path directory = cleanTestDirectory("test-duplicate-student-moral-file");
+		writeFile(directory / "User.txt",
+			"2\n"
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n"
+			"10003\t学生2\t" + PasswordHasher::hash("888888") + "\t0\n");
+		writeFile(directory / "Moral_s.txt",
+			"2\n"
+			"10002\t10003\t10\t10\t10\t10\t10\t10\t10\t10\t10\n"
+			"10002\t10003\t9\t9\t9\t9\t9\t9\t9\t9\t9\n");
+
+		AssessmentRepository repository(directory.string());
+		bool thrown = false;
+		try
+		{
+			repository.loadAll();
+		}
+		catch (const std::runtime_error&)
+		{
+			thrown = true;
+		}
+		assert(thrown);
 	}
 
 	void testMissingUserFileStillFails()
@@ -641,7 +743,7 @@ namespace
 		const std::filesystem::path directory = cleanTestDirectory("test-malformed-runtime-file");
 		writeFile(directory / "User.txt",
 			"1\n"
-			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\t0\n");
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n");
 		writeFile(directory / "Course.txt", "bad\n");
 
 		AssessmentRepository repository(directory.string());
@@ -708,9 +810,71 @@ namespace
 		MoralService moralService(repository);
 		assert(moralService.studentMoralsGivenBy("10002").size() == 1);
 		assert(moralService.teacherMorals().size() == 1);
+		bool duplicateMoralFailed = false;
+		try
+		{
+			MoralRecord record;
+			record.receiverAccount = "10002";
+			for (int index = 0; index < 9; ++index)
+				record.scores.push_back(10.0f);
+			moralService.submitStudentMoral("10002", std::vector<MoralRecord>(1, record));
+		}
+		catch (const std::runtime_error&)
+		{
+			duplicateMoralFailed = true;
+		}
+		assert(duplicateMoralFailed);
 		QueryService query(repository);
 		assert(query.isStudent("10002"));
 		assert(query.userName("10002") == "学生1");
+	}
+
+	void testTotalGenerationLocksMutationsAndRevokeUnlocks()
+	{
+		const std::filesystem::path directory = prepareRepositoryData();
+		AssessmentRepository repository(directory.string());
+		repository.loadAll();
+		ScoreService scoreService(repository);
+		scoreService.buildTotal();
+		assert(repository.status().totalGenerated);
+
+		bool courseThrown = false;
+		try { CourseService(repository).createCourse("10002", "锁定", 1.0f, 80.0f); }
+		catch (const std::runtime_error&) { courseThrown = true; }
+		assert(courseThrown);
+
+		bool activityThrown = false;
+		try { ActivityService(repository).approveActivity(1); }
+		catch (const std::runtime_error&) { activityThrown = true; }
+		assert(activityThrown);
+
+		bool additionThrown = false;
+		try { AdditionService(repository).createPersonalAddition("10002", "锁定", 1.0f); }
+		catch (const std::runtime_error&) { additionThrown = true; }
+		assert(additionThrown);
+
+		bool moralThrown = false;
+		try
+		{
+			MoralRecord record = MoralService(repository).studentMoralsGivenBy("10002")[0];
+			MoralService(repository).updateStudentMoral("10002", 1, record);
+		}
+		catch (const std::runtime_error&) { moralThrown = true; }
+		assert(moralThrown);
+
+		scoreService.revokeTotal();
+		assert(!repository.status().totalGenerated);
+		const StudentScore& score = repository.totals().find("10002")->second;
+		assert(closeTo(score.study, 0.0f));
+		assert(closeTo(score.gpa, 0.0f));
+		assert(closeTo(score.activity, 0.0f));
+		assert(closeTo(score.moral, 0.0f));
+		assert(closeTo(score.addition, 0.0f));
+		assert(closeTo(score.total, 0.0f));
+		assert(score.rank == 0);
+
+		CourseService(repository).createCourse("10002", "解锁", 1.0f, 80.0f);
+		assert(repository.courses().count("10002") == 2);
 	}
 
 	void testCancelledModeDoesNotSave()
@@ -736,6 +900,12 @@ namespace
 
 int main()
 {
+#ifdef _MSC_VER
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+#endif
 	testAppConfig();
 	testTextTable();
 	testScoreCalculator();
@@ -755,14 +925,18 @@ int main()
 	testOperationText();
 	testPasswordHasher();
 	testMissingRuntimeFiles();
+	testLegacyUserStatusMigration();
 	testMissingUserFileStillFails();
 	testMalformedRuntimeFileStillFails();
+	testMalformedStatusFileFails();
+	testDuplicateStudentMoralFileFails();
 	testRepositorySeparatesUserFileAndRuntimeData();
 	testBackupFileGenerated();
 	testFailedSaveKeepsOldFile();
 	testRepositoryAuthAndScoreService();
 	testDefaultStateAndTotalQueryGate();
 	testMutationServices();
+	testTotalGenerationLocksMutationsAndRevokeUnlocks();
 	testCancelledModeDoesNotSave();
 	return 0;
 }

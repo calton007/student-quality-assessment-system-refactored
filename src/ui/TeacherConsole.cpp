@@ -35,7 +35,7 @@ void TeacherConsole::gradeMoral()
 {
 	try
 	{
-		if (repository_.users()[user_.account].finishedMoralOrGeneratedTotal)
+		if (repository_.status().teacherMoralFinishedAccounts.find(user_.account) != repository_.status().teacherMoralFinishedAccounts.end())
 			throw std::runtime_error("已打分!");
 		std::vector<MoralRecord> records;
 		for (std::map<std::string, UserRecord>::const_iterator iter = repository_.users().begin(); iter != repository_.users().end(); ++iter)

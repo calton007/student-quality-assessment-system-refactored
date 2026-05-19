@@ -29,35 +29,17 @@ UserRole userRoleFromFileValue(char value)
 	throw std::runtime_error("invalid user role");
 }
 
-char flagToFileValue(bool value)
-{
-	return value ? '1' : '0';
-}
-
-bool flagFromFileValue(char value)
-{
-	if (value == '0')
-		return false;
-	if (value == '1')
-		return true;
-	throw std::runtime_error("invalid flag");
-}
-
 std::istream& operator>>(std::istream& in, UserRecord& record)
 {
 	char role = '0';
-	char flag = '0';
-	if (in >> record.account >> record.name >> record.password >> role >> flag)
-	{
+	if (in >> record.account >> record.name >> record.password >> role)
 		record.role = userRoleFromFileValue(role);
-		record.finishedMoralOrGeneratedTotal = flagFromFileValue(flag);
-	}
 	return in;
 }
 
 std::ostream& operator<<(std::ostream& out, const UserRecord& record)
 {
 	out << record.account << '\t' << record.name << '\t' << record.password << '\t'
-		<< toFileValue(record.role) << '\t' << flagToFileValue(record.finishedMoralOrGeneratedTotal) << '\n';
+		<< toFileValue(record.role) << '\n';
 	return out;
 }

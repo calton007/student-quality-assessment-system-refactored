@@ -39,10 +39,5 @@ bool QueryService::isStudent(const std::string& account) const
 
 bool QueryService::totalGenerated() const
 {
-	for (std::map<std::string, UserRecord>::const_iterator iter = repository_.users().begin(); iter != repository_.users().end(); ++iter)
-	{
-		if (iter->second.role == UserRole::Group)
-			return iter->second.finishedMoralOrGeneratedTotal;
-	}
-	return false;
+	return repository_.status().totalGenerated;
 }

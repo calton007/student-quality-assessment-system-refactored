@@ -19,8 +19,10 @@ namespace TotalValidation
 				errors.push_back(displayName + "缺少课程成绩");
 			if (!iter->hasTeacherMoral)
 				errors.push_back(displayName + "缺少班主任思想品德评分");
-			if (iter->studentMoralCount != studentCount)
-				errors.push_back(displayName + "学生互评记录不完整");
+			if (iter->studentMoralCount < studentCount)
+				errors.push_back(displayName + "学生互评记录缺失");
+			if (iter->studentMoralCount > studentCount)
+				errors.push_back(displayName + "学生互评记录重复");
 		}
 
 		for (std::vector<std::string>::const_iterator iter = unreviewedActivityAccounts.begin(); iter != unreviewedActivityAccounts.end(); ++iter)
