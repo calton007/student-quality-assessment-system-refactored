@@ -60,6 +60,12 @@ namespace
 	void writeAtomic(const std::string& path, const std::string& content)
 	{
 		const std::string tempPath = path + ".tmp";
+		const std::string backupPath = path + ".bak";
+		if (std::filesystem::exists(path))
+		{
+			if (!CopyFileA(path.c_str(), backupPath.c_str(), FALSE))
+				throw std::runtime_error("cannot backup data file: " + path);
+		}
 		{
 			std::ofstream output(tempPath, std::ios::binary | std::ios::trunc);
 			if (!output)

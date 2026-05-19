@@ -39,7 +39,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>src;src\domain;src\repository;src\service;src\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\domain;src\repository;src\service;src\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -56,7 +56,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>src;src\domain;src\repository;src\service;src\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\domain;src\repository;src\service;src\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -68,6 +68,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="tests\Tests.cpp" />
+    <ClCompile Include="src\app\AppConfig.cpp" />
+    <ClCompile Include="src\app\AppLogger.cpp" />
     <ClCompile Include="src\domain\ActivityRecord.cpp" />
     <ClCompile Include="src\domain\CourseRecord.cpp" />
     <ClCompile Include="src\domain\MoralRecord.cpp" />
@@ -90,6 +92,8 @@
     <ClCompile Include="src\ui\ConsoleView.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\app\AppConfig.h" />
+    <ClInclude Include="src\app\AppLogger.h" />
     <ClInclude Include="src\domain\ActivityRecord.h" />
     <ClInclude Include="src\domain\CourseRecord.h" />
     <ClInclude Include="src\domain\MoralRecord.h" />

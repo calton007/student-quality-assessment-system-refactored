@@ -1,12 +1,13 @@
 #pragma once
 
+#include "AppLogger.h"
 #include "AssessmentRepository.h"
 #include "UserRecord.h"
 
 class GroupConsole
 {
 public:
-	GroupConsole(AssessmentRepository& repository, const UserRecord& user);
+	GroupConsole(AssessmentRepository& repository, const UserRecord& user, const AppLogger& logger);
 	void run();
 
 private:
@@ -26,4 +27,5 @@ private:
 
 	AssessmentRepository& repository_;
 	UserRecord user_;
+	const AppLogger& logger_;
 };

@@ -1,12 +1,13 @@
 #pragma once
 
+#include "AppLogger.h"
 #include "AssessmentRepository.h"
 #include "UserRecord.h"
 
 class ConsoleApp
 {
 public:
-	explicit ConsoleApp(AssessmentRepository& repository);
+	ConsoleApp(AssessmentRepository& repository, const AppLogger& logger);
 	int run();
 
 private:
@@ -14,4 +15,5 @@ private:
 	void openMenu(const UserRecord& user);
 
 	AssessmentRepository& repository_;
+	const AppLogger& logger_;
 };

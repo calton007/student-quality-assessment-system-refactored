@@ -1,4 +1,6 @@
+#include "AppConfig.h"
 #include "ScoreCalculator.h"
+#include "SecureFileStore.h"
 #include "TextTable.h"
 #include "TotalValidation.h"
 #include "AssessmentRepository.h"
@@ -15,6 +17,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -222,6 +225,135 @@ namespace
 		std::filesystem::remove_all(directory);
 		std::filesystem::create_directories(directory);
 		return directory;
+	}
+
+	void setLocalAppData(const std::string& value)
+	{
+		const int result = _putenv_s("LOCALAPPDATA", value.c_str());
+		assert(result == 0);
+	}
+
+	void testAppConfig()
+	{
+		char* existing = NULL;
+		size_t existingLength = 0;
+		const bool hadOriginal = _dupenv_s(&existing, &existingLength, "LOCALAPPDATA") == 0 && existing != NULL;
+		const std::string original = hadOriginal ? existing : "";
+		std::free(existing);
+
+		const std::filesystem::path localAppData = cleanTestDirectory("test-app-config-local");
+		setLocalAppData(localAppData.string());
+
+		char appName[] = "app.exe";
+		char* defaultArgs[] = { appName };
+		AppConfig defaultConfig = AppConfig::parse(1, defaultArgs);
+		assert(defaultConfig.userFilePath() == "User.txt");
+		assert(defaultConfig.runtimeDataDirectory() == (localAppData / "StudentQualityAssessment").string());
+		assert(std::filesystem::is_directory(defaultConfig.runtimeDataDirectory()));
+
+		const std::filesystem::path customDataDirectory = cleanTestDirectory("test-app-config-custom") / "nested";
+		char option[] = "--data-dir";
+		std::string customText = customDataDirectory.string();
+		char* customPath = const_cast<char*>(customText.c_str());
+		char* customArgs[] = { appName, option, customPath };
+		AppConfig customConfig = AppConfig::parse(3, customArgs);
+		assert(customConfig.runtimeDataDirectory() == customDataDirectory.string());
+		assert(std::filesystem::is_directory(customConfig.runtimeDataDirectory()));
+
+		bool missingValueThrown = false;
+		try
+		{
+			char* badArgs[] = { appName, option };
+			AppConfig::parse(2, badArgs);
+		}
+		catch (const std::runtime_error&)
+		{
+			missingValueThrown = true;
+		}
+		assert(missingValueThrown);
+
+		bool unknownThrown = false;
+		try
+		{
+			char unknown[] = "--unknown";
+			char* badArgs[] = { appName, unknown };
+			AppConfig::parse(2, badArgs);
+		}
+		catch (const std::runtime_error&)
+		{
+			unknownThrown = true;
+		}
+		assert(unknownThrown);
+
+		setLocalAppData("");
+		bool missingEnvThrown = false;
+		try
+		{
+			AppConfig::parse(1, defaultArgs);
+		}
+		catch (const std::runtime_error&)
+		{
+			missingEnvThrown = true;
+		}
+		assert(missingEnvThrown);
+
+		setLocalAppData(original);
+	}
+
+	void testRepositorySeparatesUserFileAndRuntimeData()
+	{
+		const std::filesystem::path directory = cleanTestDirectory("test-repository-paths");
+		const std::filesystem::path userFile = directory / "User.txt";
+		const std::filesystem::path runtimeDirectory = directory / "runtime";
+		std::filesystem::create_directories(runtimeDirectory);
+		writeFile(userFile,
+			"1\n"
+			"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\t0\n");
+		writeFile(runtimeDirectory / "Course.txt",
+			"1\n"
+			"10002\t数学\t2\t90\n");
+
+		AssessmentRepository repository(userFile.string(), runtimeDirectory.string(), NULL);
+		repository.loadAll();
+		assert(repository.users().size() == 1);
+		assert(repository.courses().count("10002") == 1);
+
+		repository.saveCourses();
+		assert(!std::filesystem::exists(directory / "Course.txt"));
+		assert(std::filesystem::exists(runtimeDirectory / "Course.txt"));
+	}
+
+	void testBackupFileGenerated()
+	{
+		const std::filesystem::path directory = cleanTestDirectory("test-backup-file");
+		const std::filesystem::path file = directory / "data.txt";
+		writeFile(file, "old");
+
+		SecureFileStore::writePlainText(file.string(), "new");
+
+		assert(readFile(file) == "new");
+		assert(readFile(file.string() + ".bak") == "old");
+	}
+
+	void testFailedSaveKeepsOldFile()
+	{
+		const std::filesystem::path directory = cleanTestDirectory("test-failed-save-keeps-old");
+		const std::filesystem::path file = directory / "data.txt";
+		writeFile(file, "old");
+		std::filesystem::create_directory(file.string() + ".tmp");
+
+		bool thrown = false;
+		try
+		{
+			SecureFileStore::writePlainText(file.string(), "new");
+		}
+		catch (const std::runtime_error&)
+		{
+			thrown = true;
+		}
+
+		assert(thrown);
+		assert(readFile(file) == "old");
 	}
 
 	std::filesystem::path prepareRepositoryData()
@@ -448,6 +580,7 @@ namespace
 
 int main()
 {
+	testAppConfig();
 	testTextTable();
 	testScoreCalculator();
 	testRank();
@@ -458,6 +591,9 @@ int main()
 	testMissingRuntimeFiles();
 	testMissingUserFileStillFails();
 	testMalformedRuntimeFileStillFails();
+	testRepositorySeparatesUserFileAndRuntimeData();
+	testBackupFileGenerated();
+	testFailedSaveKeepsOldFile();
 	testRepositoryAuthAndScoreService();
 	testDefaultStateAndTotalQueryGate();
 	testMutationServices();

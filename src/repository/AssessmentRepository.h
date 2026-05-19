@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ActivityRecord.h"
+#include "AppLogger.h"
 #include "CourseRecord.h"
 #include "MoralRecord.h"
 #include "StudentScore.h"
@@ -14,6 +15,7 @@ class AssessmentRepository
 {
 public:
 	explicit AssessmentRepository(const std::string& dataDirectory = ".");
+	AssessmentRepository(const std::string& userFilePath, const std::string& runtimeDataDirectory, const AppLogger* logger);
 
 	void loadAll();
 	void loadUsers();
@@ -50,9 +52,14 @@ public:
 	const std::map<std::string, MoralRecord>& teacherMorals() const;
 
 private:
-	std::string path(const std::string& fileName) const;
+	std::string buildPath(const std::string& directory, const std::string& fileName) const;
+	std::string runtimePath(const std::string& fileName) const;
+	void writeProtectedRuntimeFile(const std::string& fileName, const std::string& content) const;
+	void writePlainUserFile(const std::string& content) const;
 
-	std::string dataDirectory_;
+	std::string userFilePath_;
+	std::string runtimeDataDirectory_;
+	const AppLogger* logger_;
 	std::map<std::string, UserRecord> users_;
 	std::map<std::string, StudentScore> totals_;
 	std::multimap<std::string, CourseRecord> courses_;

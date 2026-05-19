@@ -14,8 +14,8 @@
 #include <iomanip>
 #include <iostream>
 
-ConsoleApp::ConsoleApp(AssessmentRepository& repository)
-	: repository_(repository)
+ConsoleApp::ConsoleApp(AssessmentRepository& repository, const AppLogger& logger)
+	: repository_(repository), logger_(logger)
 {
 }
 
@@ -60,6 +60,7 @@ UserRecord ConsoleApp::login()
 		}
 		catch (const std::exception&)
 		{
+			logger_.error("login failed: " + account);
 			ConsoleView::message("用户名或密码错误！");
 		}
 	}
@@ -77,5 +78,5 @@ void ConsoleApp::openMenu(const UserRecord& user)
 		TeacherConsole(repository_, user).run();
 		return;
 	}
-	GroupConsole(repository_, user).run();
+	GroupConsole(repository_, user, logger_).run();
 }
