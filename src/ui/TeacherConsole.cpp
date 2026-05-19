@@ -17,7 +17,7 @@ void TeacherConsole::run()
 {
 	while (true)
 	{
-		ConsoleView::menu({ "思想品德打分", "修改思想品德打分", "修改密码", "返回登陆界面", "退出系统" });
+		ConsoleView::menu("辅导员首页", user_, { "思想品德打分", "修改思想品德打分", "修改密码", "返回登陆界面", "退出系统" });
 		switch (ConsoleInput::menuChoice(5))
 		{
 		case '1': gradeMoral(); break;
@@ -42,8 +42,8 @@ void TeacherConsole::gradeMoral()
 		{
 			if (iter->second.role != UserRole::Student)
 				continue;
-			ConsoleView::header();
-			ConsoleView::message("请给" + iter->second.name + "打分");
+			ConsoleView::menu("辅导员首页 / 思想品德打分", user_, std::vector<std::string>());
+			ConsoleView::operation(iter->second.name, iter->first, "思想品德", "打分");
 			MoralRecord record;
 			record.receiverAccount = iter->first;
 			record.giverAccount = user_.account;
@@ -63,7 +63,7 @@ void TeacherConsole::modifyMoral()
 	{
 		MoralService service(repository_);
 		std::vector<MoralRecord> records = service.teacherMorals();
-		ConsoleView::header();
+		ConsoleView::menu("辅导员首页 / 修改思想品德打分", user_, std::vector<std::string>());
 		ConsoleView::morals(records);
 		if (records.empty())
 			throw std::runtime_error("没有可修改的思想品德评分记录!");
@@ -83,6 +83,7 @@ void TeacherConsole::changePassword()
 {
 	try
 	{
+		ConsoleView::menu("辅导员首页 / 修改密码", user_, std::vector<std::string>());
 		AuthService(repository_).changePassword(user_.account, ConsoleInput::text("请输入原密码:"), ConsoleInput::text("请输入新密码:"));
 		ConsoleView::message("修改成功!");
 	}

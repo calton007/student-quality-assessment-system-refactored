@@ -260,6 +260,33 @@ namespace
 		assert(output.str().find("请输入1确认或0取消") != std::string::npos);
 	}
 
+	void testMenuShowsLocationAndUser()
+	{
+		UserRecord user;
+		user.account = "10002";
+		user.name = "学生1";
+
+		std::ostringstream output;
+		std::streambuf* oldBuffer = std::cout.rdbuf(output.rdbuf());
+		ConsoleView::menu("学生首页 / 查询", user, std::vector<std::string>(1, "返回"));
+		std::cout.rdbuf(oldBuffer);
+
+		const std::string text = output.str();
+		assert(text.find("当前位置: 学生首页 / 查询") != std::string::npos);
+		assert(text.find("当前用户: 学生1(10002)") != std::string::npos);
+		assert(text.find("[1] 返回") != std::string::npos);
+	}
+
+	void testOperationText()
+	{
+		std::ostringstream output;
+		std::streambuf* oldBuffer = std::cout.rdbuf(output.rdbuf());
+		ConsoleView::operation("学生1", "10002", "学习成绩", "录入");
+		std::cout.rdbuf(oldBuffer);
+
+		assert(output.str().find("正在操作: 学生1(10002) / 学习成绩 / 录入") != std::string::npos);
+	}
+
 	void testPasswordHasher()
 	{
 		const std::string stored = PasswordHasher::hash("888888");
@@ -658,6 +685,8 @@ int main()
 	testMenuInputRetries();
 	testScoreInputBoundaries();
 	testConfirmInput();
+	testMenuShowsLocationAndUser();
+	testOperationText();
 	testPasswordHasher();
 	testMissingRuntimeFiles();
 	testMissingUserFileStillFails();

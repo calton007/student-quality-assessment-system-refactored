@@ -31,7 +31,7 @@ void StudentConsole::run()
 {
 	while (true)
 	{
-		ConsoleView::menu({ "思想品德项目", "课外活动项目", "查询", "修改密码", "返回登陆界面", "退出系统" });
+		ConsoleView::menu("学生首页", user_, { "思想品德项目", "课外活动项目", "查询", "修改密码", "返回登陆界面", "退出系统" });
 		switch (ConsoleInput::menuChoice(6))
 		{
 		case '1': moralMenu(); break;
@@ -48,7 +48,7 @@ void StudentConsole::run()
 
 void StudentConsole::moralMenu()
 {
-	ConsoleView::menu({ "思想品德打分", "修改思想品德打分", "返回" });
+	ConsoleView::menu("学生首页 / 思想品德项目", user_, { "思想品德打分", "修改思想品德打分", "返回" });
 	switch (ConsoleInput::menuChoice(3))
 	{
 	case '1': gradeMoral(); break;
@@ -69,8 +69,8 @@ void StudentConsole::gradeMoral()
 		{
 			if (iter->second.role != UserRole::Student)
 				continue;
-			ConsoleView::header();
-			ConsoleView::message("请给" + iter->second.name + "打分");
+			ConsoleView::menu("学生首页 / 思想品德项目 / 思想品德打分", user_, std::vector<std::string>());
+			ConsoleView::operation(iter->second.name, iter->first, "思想品德", "打分");
 			MoralRecord record;
 			record.receiverAccount = iter->first;
 			record.giverAccount = user_.account;
@@ -93,7 +93,7 @@ void StudentConsole::modifyMoral()
 	{
 		MoralService service(repository_);
 		std::vector<MoralRecord> records = service.studentMoralsGivenBy(user_.account);
-		ConsoleView::header();
+		ConsoleView::menu("学生首页 / 思想品德项目 / 修改思想品德打分", user_, std::vector<std::string>());
 		ConsoleView::morals(records);
 		if (records.empty())
 			throw std::runtime_error("没有可修改的思想品德评分记录!");
@@ -114,7 +114,7 @@ void StudentConsole::modifyMoral()
 
 void StudentConsole::activityMenu()
 {
-	ConsoleView::menu({ "录入课外活动", "修改课外活动", "删除课外活动", "查询课外活动", "返回" });
+	ConsoleView::menu("学生首页 / 课外活动项目", user_, { "录入课外活动", "修改课外活动", "删除课外活动", "查询课外活动", "返回" });
 	switch (ConsoleInput::menuChoice(5))
 	{
 	case '1': newActivity(); break;
@@ -130,6 +130,8 @@ void StudentConsole::newActivity()
 {
 	try
 	{
+		ConsoleView::menu("学生首页 / 课外活动项目 / 录入课外活动", user_, std::vector<std::string>());
+		ConsoleView::operation(user_.name, user_.account, "课外活动", "录入");
 		ActivityService(repository_).createActivity(user_.account, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f, "活动分"));
 		markTotalNotGenerated(repository_);
 		ConsoleView::message("录入成功!");
@@ -144,11 +146,12 @@ void StudentConsole::modifyActivity()
 	{
 		ActivityService service(repository_);
 		std::vector<ActivityRecord> records = service.listForStudent(user_.account);
-		ConsoleView::header();
+		ConsoleView::menu("学生首页 / 课外活动项目 / 修改课外活动", user_, std::vector<std::string>());
 		ConsoleView::activities(records);
 		int row = ConsoleInput::lineNumber(static_cast<int>(records.size()));
 		if (row == 0)
 			return;
+		ConsoleView::operation(user_.name, user_.account, "课外活动", "修改");
 		service.updateStudentActivity(user_.account, row, ConsoleInput::text("活动名称:"), ConsoleInput::score(0.5f, 20.0f, "活动分"));
 		ConsoleView::message("修改成功!");
 	}
@@ -162,11 +165,12 @@ void StudentConsole::deleteActivity()
 	{
 		ActivityService service(repository_);
 		std::vector<ActivityRecord> records = service.listForStudent(user_.account);
-		ConsoleView::header();
+		ConsoleView::menu("学生首页 / 课外活动项目 / 删除课外活动", user_, std::vector<std::string>());
 		ConsoleView::activities(records);
 		int row = ConsoleInput::lineNumber(static_cast<int>(records.size()));
 		if (row == 0)
 			return;
+		ConsoleView::operation(user_.name, user_.account, "课外活动", "删除");
 		service.deleteStudentActivity(user_.account, row);
 		ConsoleView::message("删除成功!");
 	}
@@ -176,7 +180,7 @@ void StudentConsole::deleteActivity()
 
 void StudentConsole::displayActivity()
 {
-	ConsoleView::header();
+	ConsoleView::menu("学生首页 / 课外活动项目 / 查询课外活动", user_, std::vector<std::string>());
 	ConsoleView::activities(ActivityService(repository_).listForStudent(user_.account));
 	ConsoleInput::pause();
 }
@@ -189,7 +193,7 @@ void StudentConsole::searchMenu()
 		if (!query.totalGenerated())
 			throw std::runtime_error("尚未生成综测成绩,无法查询!");
 		const StudentScore& score = query.scoreFor(user_.account);
-		ConsoleView::header();
+		ConsoleView::menu("学生首页 / 查询", user_, std::vector<std::string>());
 		ConsoleView::scores(std::vector<StudentScore>(1, score));
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
@@ -200,6 +204,7 @@ void StudentConsole::changePassword()
 {
 	try
 	{
+		ConsoleView::menu("学生首页 / 修改密码", user_, std::vector<std::string>());
 		AuthService(repository_).changePassword(user_.account, ConsoleInput::text("请输入原密码:"), ConsoleInput::text("请输入新密码:"));
 		ConsoleView::message("修改成功!");
 	}

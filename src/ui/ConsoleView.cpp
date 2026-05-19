@@ -46,6 +46,16 @@ void ConsoleView::menu(const std::vector<std::string>& items)
 	ConsoleMenu::render(items);
 }
 
+void ConsoleView::menu(const std::string& location, const UserRecord& user, const std::vector<std::string>& items)
+{
+	ConsoleMenu::render(location, user, items);
+}
+
+void ConsoleView::operation(const std::string& studentName, const std::string& studentAccount, const std::string& item, const std::string& action)
+{
+	std::cout << "正在操作: " << studentName << "(" << studentAccount << ") / " << item << " / " << action << std::endl;
+}
+
 void ConsoleView::courses(const std::vector<CourseRecord>& records)
 {
 	std::vector<std::vector<std::string>> rows;
