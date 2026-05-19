@@ -7,7 +7,7 @@ namespace
 	float floorToTwoDecimals(float value)
 	{
 		value *= 100;
-		value = static_cast<int>(value);
+		value = static_cast<float>(static_cast<int>(value));
 		value /= 100;
 		return value;
 	}
