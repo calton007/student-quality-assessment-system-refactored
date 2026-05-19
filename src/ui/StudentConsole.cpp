@@ -32,12 +32,13 @@ void StudentConsole::run()
 	while (true)
 	{
 		ConsoleView::menu({ "思想品德项目", "课外活动项目", "查询", "修改密码", "返回登陆界面", "退出系统" });
-		switch (ConsoleInput::menuChoice())
+		switch (ConsoleInput::menuChoice(6))
 		{
 		case '1': moralMenu(); break;
 		case '2': activityMenu(); break;
 		case '3': searchMenu(); break;
 		case '4': changePassword(); break;
+		case '0':
 		case '5': return;
 		case '6': std::exit(0);
 		default: ConsoleView::message("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
@@ -48,10 +49,11 @@ void StudentConsole::run()
 void StudentConsole::moralMenu()
 {
 	ConsoleView::menu({ "思想品德打分", "修改思想品德打分", "返回" });
-	switch (ConsoleInput::menuChoice())
+	switch (ConsoleInput::menuChoice(3))
 	{
 	case '1': gradeMoral(); break;
 	case '2': modifyMoral(); break;
+	case '0':
 	default: break;
 	}
 }
@@ -113,12 +115,13 @@ void StudentConsole::modifyMoral()
 void StudentConsole::activityMenu()
 {
 	ConsoleView::menu({ "录入课外活动", "修改课外活动", "删除课外活动", "查询课外活动", "返回" });
-	switch (ConsoleInput::menuChoice())
+	switch (ConsoleInput::menuChoice(5))
 	{
 	case '1': newActivity(); break;
 	case '2': modifyActivity(); break;
 	case '3': deleteActivity(); break;
 	case '4': displayActivity(); break;
+	case '0':
 	default: break;
 	}
 }

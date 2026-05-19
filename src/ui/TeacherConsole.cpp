@@ -18,11 +18,12 @@ void TeacherConsole::run()
 	while (true)
 	{
 		ConsoleView::menu({ "思想品德打分", "修改思想品德打分", "修改密码", "返回登陆界面", "退出系统" });
-		switch (ConsoleInput::menuChoice())
+		switch (ConsoleInput::menuChoice(5))
 		{
 		case '1': gradeMoral(); break;
 		case '2': modifyMoral(); break;
 		case '3': changePassword(); break;
+		case '0':
 		case '4': return;
 		case '5': std::exit(0);
 		default: ConsoleView::message("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;

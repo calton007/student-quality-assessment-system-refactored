@@ -35,7 +35,7 @@ void GroupConsole::run()
 	while (true)
 	{
 		ConsoleView::menu({ "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" });
-		switch (ConsoleInput::menuChoice())
+		switch (ConsoleInput::menuChoice(8))
 		{
 		case '1': studyMenu(); break;
 		case '2': additionMenu(); break;
@@ -43,6 +43,7 @@ void GroupConsole::run()
 		case '4': searchMenu(); break;
 		case '5': buildTotal(); break;
 		case '6': changePassword(); break;
+		case '0':
 		case '7': return;
 		case '8': std::exit(0);
 		default: ConsoleView::message("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
@@ -53,11 +54,12 @@ void GroupConsole::run()
 void GroupConsole::studyMenu()
 {
 	ConsoleView::menu({ "录入学习成绩", "修改学习成绩", "删除学习成绩", "返回" });
-	switch (ConsoleInput::menuChoice())
+	switch (ConsoleInput::menuChoice(4))
 	{
 	case '1': newStudy(); break;
 	case '2': modifyStudy(); break;
 	case '3': deleteStudy(); break;
+	case '0':
 	default: break;
 	}
 }
@@ -145,11 +147,12 @@ void GroupConsole::deleteStudy()
 void GroupConsole::additionMenu()
 {
 	ConsoleView::menu({ "录入附加分", "修改附加分", "删除附加分", "返回" });
-	switch (ConsoleInput::menuChoice())
+	switch (ConsoleInput::menuChoice(4))
 	{
 	case '1': newAddition(); break;
 	case '2': modifyAddition(); break;
 	case '3': deleteAddition(); break;
+	case '0':
 	default: break;
 	}
 }

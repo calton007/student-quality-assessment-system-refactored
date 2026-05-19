@@ -89,6 +89,10 @@
     <ClCompile Include="src\service\ScoreService.cpp" />
     <ClCompile Include="src\service\TotalValidation.cpp" />
     <ClCompile Include="src\ui\ConsoleInput.cpp" />
+    <ClCompile Include="src\ui\ConsoleMenu.cpp" />
+    <ClCompile Include="src\ui\ConsoleScreen.cpp" />
+    <ClCompile Include="src\ui\ConsoleTable.cpp" />
+    <ClCompile Include="src\ui\ConsoleTheme.cpp" />
     <ClCompile Include="src\ui\ConsoleView.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +117,10 @@
     <ClInclude Include="src\service\ScoreService.h" />
     <ClInclude Include="src\service\TotalValidation.h" />
     <ClInclude Include="src\ui\ConsoleInput.h" />
+    <ClInclude Include="src\ui\ConsoleMenu.h" />
+    <ClInclude Include="src\ui\ConsoleScreen.h" />
+    <ClInclude Include="src\ui\ConsoleTable.h" />
+    <ClInclude Include="src\ui\ConsoleTheme.h" />
     <ClInclude Include="src\ui\ConsoleView.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

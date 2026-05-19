@@ -1,17 +1,25 @@
 #include "ConsoleInput.h"
 
+#include "ConsoleTheme.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
 
-char ConsoleInput::menuChoice()
+char ConsoleInput::menuChoice(int maxChoice)
 {
-	char choice = '\0';
-	std::cout << "请选择:";
-	std::cin >> choice;
-	return choice;
+	while (true)
+	{
+		std::cout << "请选择(返回请输入0):";
+		int value = 0;
+		if (std::cin >> value && value >= 0 && value <= maxChoice)
+			return static_cast<char>('0' + value);
+		std::cin.clear();
+		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+		std::cout << ConsoleTheme::invalidMenuChoice() << std::endl;
+	}
 }
 
 int ConsoleInput::lineNumber(int maxLine)
@@ -24,7 +32,7 @@ int ConsoleInput::lineNumber(int maxLine)
 			return value;
 		std::cin.clear();
 		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-		std::cout << "请输入正确的行数!" << std::endl;
+		std::cout << ConsoleTheme::invalidLineNumber() << std::endl;
 	}
 }
 
@@ -63,6 +71,20 @@ std::vector<float> ConsoleInput::moralScores(const std::vector<std::string>& ite
 		}
 	}
 	return scores;
+}
+
+bool ConsoleInput::confirm(const std::string& prompt)
+{
+	while (true)
+	{
+		std::cout << prompt << "(1确认/0取消):";
+		int value = -1;
+		if (std::cin >> value && (value == 0 || value == 1))
+			return value == 1;
+		std::cin.clear();
+		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+		std::cout << "请输入1确认或0取消!" << std::endl;
+	}
 }
 
 const std::vector<std::string>& ConsoleInput::studentMoralItems()

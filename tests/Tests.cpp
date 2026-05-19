@@ -9,6 +9,7 @@
 #include "AuthService.h"
 #include "CourseService.h"
 #include "ConsoleInput.h"
+#include "ConsoleTable.h"
 #include "ConsoleView.h"
 #include "MoralService.h"
 #include "PasswordHasher.h"
@@ -192,6 +193,71 @@ namespace
 		assert(text.find("课外活动成绩    思想品德成绩") != std::string::npos);
 		assert(text.find("10002     100") != std::string::npos);
 		assert(text.find("95.25       1") != std::string::npos);
+	}
+
+	void testEmptyTableOutput()
+	{
+		std::ostringstream output;
+		std::streambuf* oldBuffer = std::cout.rdbuf(output.rdbuf());
+		ConsoleView::courses(std::vector<CourseRecord>());
+		std::cout.rdbuf(oldBuffer);
+
+		const std::string text = output.str();
+		assert(text.find("课程名") != std::string::npos);
+		assert(text.find("暂无数据") != std::string::npos);
+	}
+
+	void testChineseDisplayWidth()
+	{
+		assert(ConsoleTable::displayWidth("学号") == 4);
+		assert(ConsoleTable::displayWidth("GPA") == 3);
+		assert(ConsoleTable::displayWidth("学生A") == 5);
+	}
+
+	void testMenuInputRetries()
+	{
+		std::istringstream input("x\n9\n2\n");
+		std::ostringstream output;
+		std::streambuf* oldInput = std::cin.rdbuf(input.rdbuf());
+		std::streambuf* oldOutput = std::cout.rdbuf(output.rdbuf());
+		const char choice = ConsoleInput::menuChoice(3);
+		std::cin.rdbuf(oldInput);
+		std::cout.rdbuf(oldOutput);
+
+		assert(choice == '2');
+		assert(output.str().find("请输入正确的菜单编号") != std::string::npos);
+	}
+
+	void testScoreInputBoundaries()
+	{
+		std::istringstream input("abc\n-1\n101\n0\n100\n");
+		std::ostringstream output;
+		std::streambuf* oldInput = std::cin.rdbuf(input.rdbuf());
+		std::streambuf* oldOutput = std::cout.rdbuf(output.rdbuf());
+		const float minValue = ConsoleInput::score(0.0f, 100.0f, "成绩");
+		const float maxValue = ConsoleInput::score(0.0f, 100.0f, "成绩");
+		std::cin.rdbuf(oldInput);
+		std::cout.rdbuf(oldOutput);
+
+		assert(closeTo(minValue, 0.0f));
+		assert(closeTo(maxValue, 100.0f));
+		assert(output.str().find("请输入0-100之间的成绩") != std::string::npos);
+	}
+
+	void testConfirmInput()
+	{
+		std::istringstream input("x\n2\n1\n0\n");
+		std::ostringstream output;
+		std::streambuf* oldInput = std::cin.rdbuf(input.rdbuf());
+		std::streambuf* oldOutput = std::cout.rdbuf(output.rdbuf());
+		const bool confirmed = ConsoleInput::confirm("保存");
+		const bool cancelled = ConsoleInput::confirm("保存");
+		std::cin.rdbuf(oldInput);
+		std::cout.rdbuf(oldOutput);
+
+		assert(confirmed);
+		assert(!cancelled);
+		assert(output.str().find("请输入1确认或0取消") != std::string::npos);
 	}
 
 	void testPasswordHasher()
@@ -587,6 +653,11 @@ int main()
 	testReadinessValidation();
 	testMoralItemText();
 	testScoreTableOutput();
+	testEmptyTableOutput();
+	testChineseDisplayWidth();
+	testMenuInputRetries();
+	testScoreInputBoundaries();
+	testConfirmInput();
 	testPasswordHasher();
 	testMissingRuntimeFiles();
 	testMissingUserFileStillFails();

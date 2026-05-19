@@ -1,8 +1,10 @@
 #include "ConsoleView.h"
 
 #include "ActivityRecord.h"
+#include "ConsoleMenu.h"
+#include "ConsoleScreen.h"
+#include "ConsoleTable.h"
 
-#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -10,33 +12,6 @@
 
 namespace
 {
-	int displayWidth(const std::string& value)
-	{
-		int width = 0;
-		for (size_t index = 0; index < value.size();)
-		{
-			const unsigned char ch = static_cast<unsigned char>(value[index]);
-			if (ch < 0x80)
-			{
-				++width;
-				++index;
-			}
-			else
-			{
-				width += 2;
-				if ((ch & 0xE0) == 0xC0)
-					index += 2;
-				else if ((ch & 0xF0) == 0xE0)
-					index += 3;
-				else if ((ch & 0xF8) == 0xF0)
-					index += 4;
-				else
-					++index;
-			}
-		}
-		return width;
-	}
-
 	template <typename T>
 	std::string toText(const T& value)
 	{
@@ -44,28 +19,16 @@ namespace
 		output << value;
 		return output.str();
 	}
-
-	void cell(const std::string& value, int width)
-	{
-		std::cout << value;
-		const int spaces = width - displayWidth(value);
-		std::cout << std::string(spaces > 0 ? spaces : 1, ' ');
-	}
 }
 
 void ConsoleView::clear()
 {
-	std::system("cls");
+	ConsoleScreen::clear();
 }
 
 void ConsoleView::header()
 {
-	clear();
-	std::cout << "*****************************************************" << std::endl
-		<< "**                                                 **" << std::endl
-		<< "**         欢迎进入班级综合素质测评管理系统        **" << std::endl
-		<< "**                                                 **" << std::endl
-		<< "*****************************************************" << std::endl;
+	ConsoleScreen::header();
 }
 
 void ConsoleView::message(const std::string& value)
@@ -80,89 +43,72 @@ void ConsoleView::error(const std::string& value)
 
 void ConsoleView::menu(const std::vector<std::string>& items)
 {
-	header();
-	for (size_t index = 0; index < items.size(); ++index)
-		std::cout << '[' << index + 1 << "] " << items[index] << std::endl;
+	ConsoleMenu::render(items);
 }
 
 void ConsoleView::courses(const std::vector<CourseRecord>& records)
 {
-	cell("行号", 8);
-	cell("学号", 10);
-	cell("课程名", 20);
-	cell("学分", 8);
-	cell("成绩", 8);
-	std::cout << std::endl;
+	std::vector<std::vector<std::string>> rows;
 	for (size_t index = 0; index < records.size(); ++index)
 	{
-		cell(toText(index + 1), 8);
-		cell(records[index].account, 10);
-		cell(records[index].name, 20);
-		cell(toText(records[index].credit), 8);
-		cell(toText(records[index].grade), 8);
-		std::cout << std::endl;
+		std::vector<std::string> row;
+		row.push_back(toText(index + 1));
+		row.push_back(records[index].account);
+		row.push_back(records[index].name);
+		row.push_back(toText(records[index].credit));
+		row.push_back(toText(records[index].grade));
+		rows.push_back(row);
 	}
+	ConsoleTable::render({ ConsoleTable::Column("行号", 8), ConsoleTable::Column("学号", 10), ConsoleTable::Column("课程名", 20), ConsoleTable::Column("学分", 8), ConsoleTable::Column("成绩", 8) }, rows);
 }
 
 void ConsoleView::activities(const std::vector<ActivityRecord>& records)
 {
-	cell("行数", 8);
-	cell("学号", 10);
-	cell("活动名", 20);
-	cell("类型", 12);
-	cell("分数", 8);
-	cell("状态", 14);
-	std::cout << std::endl;
+	std::vector<std::vector<std::string>> rows;
 	for (size_t index = 0; index < records.size(); ++index)
 	{
-		cell(toText(index + 1), 8);
-		cell(records[index].account, 10);
-		cell(records[index].name, 20);
-		cell(records[index].type, 12);
-		cell(toText(records[index].grade), 8);
-		cell(toFileValue(records[index].status), 14);
-		std::cout << std::endl;
+		std::vector<std::string> row;
+		row.push_back(toText(index + 1));
+		row.push_back(records[index].account);
+		row.push_back(records[index].name);
+		row.push_back(records[index].type);
+		row.push_back(toText(records[index].grade));
+		row.push_back(toFileValue(records[index].status));
+		rows.push_back(row);
 	}
+	ConsoleTable::render({ ConsoleTable::Column("行号", 8), ConsoleTable::Column("学号", 10), ConsoleTable::Column("活动名", 20), ConsoleTable::Column("类型", 12), ConsoleTable::Column("分数", 8), ConsoleTable::Column("状态", 14) }, rows);
 }
 
 void ConsoleView::morals(const std::vector<MoralRecord>& records)
 {
-	cell("行数", 8);
-	cell("得分人", 12);
-	cell("打分人", 12);
-	cell("总分", 8);
-	std::cout << std::endl;
+	std::vector<std::vector<std::string>> rows;
 	for (size_t index = 0; index < records.size(); ++index)
 	{
-		cell(toText(index + 1), 8);
-		cell(records[index].receiverAccount, 12);
-		cell(records[index].giverAccount, 12);
-		cell(toText(sumScores(records[index])), 8);
-		std::cout << std::endl;
+		std::vector<std::string> row;
+		row.push_back(toText(index + 1));
+		row.push_back(records[index].receiverAccount);
+		row.push_back(records[index].giverAccount);
+		row.push_back(toText(sumScores(records[index])));
+		rows.push_back(row);
 	}
+	ConsoleTable::render({ ConsoleTable::Column("行号", 8), ConsoleTable::Column("得分人", 12), ConsoleTable::Column("打分人", 12), ConsoleTable::Column("总分", 8) }, rows);
 }
 
 void ConsoleView::scores(const std::vector<StudentScore>& records)
 {
-	cell("学号", 10);
-	cell("学习成绩", 12);
-	cell("GPA", 8);
-	cell("课外活动成绩", 16);
-	cell("思想品德成绩", 16);
-	cell("附加分", 10);
-	cell("综测成绩", 12);
-	cell("排名", 8);
-	std::cout << std::endl;
+	std::vector<std::vector<std::string>> rows;
 	for (std::vector<StudentScore>::const_iterator iter = records.begin(); iter != records.end(); ++iter)
 	{
-		cell(iter->account, 10);
-		cell(toText(iter->study), 12);
-		cell(toText(iter->gpa), 8);
-		cell(toText(iter->activity), 16);
-		cell(toText(iter->moral), 16);
-		cell(toText(iter->addition), 10);
-		cell(toText(iter->total), 12);
-		cell(toText(iter->rank), 8);
-		std::cout << std::endl;
+		std::vector<std::string> row;
+		row.push_back(iter->account);
+		row.push_back(toText(iter->study));
+		row.push_back(toText(iter->gpa));
+		row.push_back(toText(iter->activity));
+		row.push_back(toText(iter->moral));
+		row.push_back(toText(iter->addition));
+		row.push_back(toText(iter->total));
+		row.push_back(toText(iter->rank));
+		rows.push_back(row);
 	}
+	ConsoleTable::render({ ConsoleTable::Column("学号", 10), ConsoleTable::Column("学习成绩", 12), ConsoleTable::Column("GPA", 8), ConsoleTable::Column("课外活动成绩", 16), ConsoleTable::Column("思想品德成绩", 16), ConsoleTable::Column("附加分", 10), ConsoleTable::Column("综测成绩", 12), ConsoleTable::Column("排名", 8) }, rows);
 }
