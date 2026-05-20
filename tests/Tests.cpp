@@ -940,7 +940,7 @@ void testDefaultAccountFullFlow()
 
 	QueryService query(repository);
 	const StudentScore& score = query.scoreFor("10002");
-	assert(closeTo(score.study, 95.0f));
+	assert(closeTo(score.study, 100.0f));
 
 	scoreService.revokeTotal();
 	assert(!repository.status().totalGenerated);

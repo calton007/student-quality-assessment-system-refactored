@@ -46,7 +46,7 @@
 命令行方式：
 
 ```powershell
-& 'C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin\MSBuild.exe' CollegeStudentsQualityAssessment.sln /p:Configuration=Debug /p:Platform=x64
+powershell -ExecutionPolicy Bypass -Command "& '.\scripts\Invoke-CleanPathCommand.ps1' -FilePath 'C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin\MSBuild.exe' -ArgumentList @('CollegeStudentsQualityAssessment.sln','/p:Configuration=Debug','/p:Platform=x64')"
 ```
 
 编译产物会生成到 `x64/`，该目录是本机生成文件，已被 `.gitignore` 忽略，不需要提交。
