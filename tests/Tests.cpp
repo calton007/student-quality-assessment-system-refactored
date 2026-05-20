@@ -14,6 +14,7 @@
 #include "ConsoleView.h"
 #include "ExportService.h"
 #include "GroupConsole.h"
+#include "LogQueryService.h"
 #include "MoralService.h"
 #include "PasswordHasher.h"
 #include "QueryService.h"
@@ -299,6 +300,8 @@ namespace
 		assert(containsItem(unlockedGroup, "审核课外活动加分"));
 		assert(containsItem(unlockedGroup, "查询项目"));
 		assert(containsItem(unlockedGroup, "数据备份恢复"));
+		assert(containsItem(unlockedGroup, "操作日志查询"));
+		assert(unlockedGroup.size() == 10);
 
 		const std::vector<std::string> lockedGroup = GroupConsole::homeMenuItems(true);
 		assert(!containsItem(lockedGroup, "学习成绩管理"));
@@ -309,7 +312,8 @@ namespace
 		assert(containsItem(lockedGroup, "导出综测成绩"));
 		assert(containsItem(lockedGroup, "综测成绩生成"));
 		assert(containsItem(lockedGroup, "数据备份恢复"));
-		assert(lockedGroup.size() == 8);
+		assert(containsItem(lockedGroup, "操作日志查询"));
+		assert(lockedGroup.size() == 9);
 
 		const std::vector<std::string> unlockedStudent = StudentConsole::homeMenuItems(false);
 		assert(containsItem(unlockedStudent, "思想品德项目"));
@@ -718,6 +722,34 @@ namespace
 		assert(!backupService.listBackups().empty());
 	}
 
+	void testLogQueryRecentAndLevelFilter()
+	{
+		const std::filesystem::path directory = cleanTestDirectory("test-log-query");
+		writeFile(directory / "User.txt",
+			"1\n"
+			"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\n");
+		AssessmentRepository repository(directory.string());
+		repository.loadAll();
+		std::ofstream log(directory / "app.log");
+		for (int index = 0; index < 55; ++index)
+			log << "2026-05-20 00:00:" << index << " [INFO] info-" << index << "\n";
+		for (int index = 0; index < 3; ++index)
+			log << "2026-05-20 00:01:" << index << " [ERROR] error-" << index << "\n";
+		log.close();
+
+		LogQueryService service(repository);
+		std::vector<std::string> recent = service.recent("", 50);
+		assert(recent.size() == 50);
+		assert(recent.front().find("info-8") != std::string::npos);
+		assert(recent.back().find("error-2") != std::string::npos);
+
+		std::vector<std::string> errors = service.recent("ERROR", 50);
+		assert(errors.size() == 3);
+		assert(errors[0].find("[ERROR]") != std::string::npos);
+
+		assert(LogQueryService(repository).recent("WARN", 50).empty());
+	}
+
 	void testDefaultStateAndTotalQueryGate()
 	{
 		const std::filesystem::path directory = cleanTestDirectory("test-default-state");
@@ -1122,6 +1154,7 @@ int main()
 	testExportTotalsCsv();
 	testScoreDetailIsReadOnly();
 	testBackupAndRestoreRuntimeDirectory();
+	testLogQueryRecentAndLevelFilter();
 	testDefaultStateAndTotalQueryGate();
 	testMutationServices();
 	testTotalGenerationLocksMutationsAndRevokeUnlocks();

@@ -9,6 +9,7 @@
 #include "ConsoleView.h"
 #include "CourseService.h"
 #include "ExportService.h"
+#include "LogQueryService.h"
 #include "QueryService.h"
 #include "ScoreDetailService.h"
 #include "ScoreService.h"
@@ -112,34 +113,38 @@ void GroupConsole::run()
 		ConsoleView::menu("测评小组首页", user_, homeMenuItems(totalGenerated));
 		if (totalGenerated)
 		{
-			switch (ConsoleInput::menuChoice(8))
+			const int choice = ConsoleInput::choice("请选择", 9);
+			switch (choice)
 			{
-			case '1': searchMenu(); break;
-			case '2': scoreDetail(); break;
-			case '3': exportTotals(); break;
-			case '4': buildTotal(); break;
-			case '5': backupMenu(); break;
-			case '6': changePassword(); break;
-			case '0':
-			case '7': return;
-			case '8': std::exit(0);
+			case 1: searchMenu(); break;
+			case 2: scoreDetail(); break;
+			case 3: exportTotals(); break;
+			case 4: buildTotal(); break;
+			case 5: backupMenu(); break;
+			case 6: logQuery(); break;
+			case 7: changePassword(); break;
+			case 0:
+			case 8: return;
+			case 9: std::exit(0);
 			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 			}
 		}
 		else
 		{
-			switch (ConsoleInput::menuChoice(9))
+			const int choice = ConsoleInput::choice("请选择", 10);
+			switch (choice)
 			{
-			case '1': studyMenu(); break;
-			case '2': additionMenu(); break;
-			case '3': checkActivity(); break;
-			case '4': searchMenu(); break;
-			case '5': buildTotal(); break;
-			case '6': backupMenu(); break;
-			case '7': changePassword(); break;
-			case '0':
-			case '8': return;
-			case '9': std::exit(0);
+			case 1: studyMenu(); break;
+			case 2: additionMenu(); break;
+			case 3: checkActivity(); break;
+			case 4: searchMenu(); break;
+			case 5: buildTotal(); break;
+			case 6: backupMenu(); break;
+			case 7: logQuery(); break;
+			case 8: changePassword(); break;
+			case 0:
+			case 9: return;
+			case 10: std::exit(0);
 			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 			}
 		}
@@ -149,8 +154,8 @@ void GroupConsole::run()
 std::vector<std::string> GroupConsole::homeMenuItems(bool totalGenerated)
 {
 	if (totalGenerated)
-		return { "查询项目", "综测成绩详情", "导出综测成绩", "综测成绩生成", "数据备份恢复", "修改密码", "返回登陆界面", "退出系统" };
-	return { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "数据备份恢复", "修改密码", "返回登陆界面", "退出系统" };
+		return { "查询项目", "综测成绩详情", "导出综测成绩", "综测成绩生成", "数据备份恢复", "操作日志查询", "修改密码", "返回登陆界面", "退出系统" };
+	return { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "数据备份恢复", "操作日志查询", "修改密码", "返回登陆界面", "退出系统" };
 }
 
 void GroupConsole::studyMenu()
@@ -453,6 +458,32 @@ void GroupConsole::backupMenu()
 		repository_.loadAll();
 		logger_.info("backup restored by: " + user_.account);
 		ConsoleView::message("恢复成功，恢复前数据已备份到: " + safetyBackup);
+	}
+	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
+	ConsoleInput::pause();
+}
+
+void GroupConsole::logQuery()
+{
+	try
+	{
+		ConsoleView::menu("测评小组首页 / 操作日志查询", user_, { "全部", "INFO", "ERROR", "返回" });
+		const int choice = ConsoleInput::choice("请选择", 4);
+		if (choice == 0 || choice == 4)
+			return;
+		std::string level;
+		if (choice == 2)
+			level = "INFO";
+		else if (choice == 3)
+			level = "ERROR";
+		const std::vector<std::string> lines = LogQueryService(repository_).recent(level, 50);
+		if (lines.empty())
+		{
+			ConsoleView::message("暂无日志");
+			return;
+		}
+		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+			ConsoleView::message(*iter);
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
 	ConsoleInput::pause();

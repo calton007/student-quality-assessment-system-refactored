@@ -28,6 +28,7 @@ private:
 	void scoreDetail();
 	void exportTotals();
 	void backupMenu();
+	void logQuery();
 	void buildTotal();
 	void changePassword();
 	bool requireStudent(const std::string& account) const;
