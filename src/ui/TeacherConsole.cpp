@@ -17,18 +17,40 @@ void TeacherConsole::run()
 {
 	while (true)
 	{
-		ConsoleView::menu("辅导员首页", user_, { "思想品德打分", "修改思想品德打分", "修改密码", "返回登陆界面", "退出系统" });
-		switch (ConsoleInput::menuChoice(5))
+		const bool totalGenerated = repository_.status().totalGenerated;
+		ConsoleView::menu("辅导员首页", user_, homeMenuItems(totalGenerated));
+		if (totalGenerated)
 		{
-		case '1': gradeMoral(); break;
-		case '2': modifyMoral(); break;
-		case '3': changePassword(); break;
-		case '0':
-		case '4': return;
-		case '5': std::exit(0);
-		default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			switch (ConsoleInput::menuChoice(3))
+			{
+			case '1': changePassword(); break;
+			case '0':
+			case '2': return;
+			case '3': std::exit(0);
+			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			}
+		}
+		else
+		{
+			switch (ConsoleInput::menuChoice(5))
+			{
+			case '1': gradeMoral(); break;
+			case '2': modifyMoral(); break;
+			case '3': changePassword(); break;
+			case '0':
+			case '4': return;
+			case '5': std::exit(0);
+			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			}
 		}
 	}
+}
+
+std::vector<std::string> TeacherConsole::homeMenuItems(bool totalGenerated)
+{
+	if (totalGenerated)
+		return { "修改密码", "返回登陆界面", "退出系统" };
+	return { "思想品德打分", "修改思想品德打分", "修改密码", "返回登陆界面", "退出系统" };
 }
 
 void TeacherConsole::gradeMoral()

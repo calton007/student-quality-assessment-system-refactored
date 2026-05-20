@@ -11,11 +11,15 @@
 #include "ConsoleInput.h"
 #include "ConsoleTable.h"
 #include "ConsoleView.h"
+#include "GroupConsole.h"
 #include "MoralService.h"
 #include "PasswordHasher.h"
 #include "QueryService.h"
 #include "ScoreService.h"
+#include "StudentConsole.h"
+#include "TeacherConsole.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -38,6 +42,11 @@ namespace
 	bool closeTo(float left, float right)
 	{
 		return std::fabs(left - right) < 0.001f;
+	}
+
+	bool containsItem(const std::vector<std::string>& items, const std::string& value)
+	{
+		return std::find(items.begin(), items.end(), value) != items.end();
 	}
 
 	void assertThrowsRecordError(const std::string& text)
@@ -277,6 +286,45 @@ namespace
 		assert(confirmed);
 		assert(!cancelled);
 		assert(output.str().find("请输入1确认或0取消") != std::string::npos);
+	}
+
+	void testGeneratedTotalHidesMutationMenuItems()
+	{
+		const std::vector<std::string> unlockedGroup = GroupConsole::homeMenuItems(false);
+		assert(containsItem(unlockedGroup, "学习成绩管理"));
+		assert(containsItem(unlockedGroup, "附加分管理"));
+		assert(containsItem(unlockedGroup, "审核课外活动加分"));
+		assert(containsItem(unlockedGroup, "查询项目"));
+
+		const std::vector<std::string> lockedGroup = GroupConsole::homeMenuItems(true);
+		assert(!containsItem(lockedGroup, "学习成绩管理"));
+		assert(!containsItem(lockedGroup, "附加分管理"));
+		assert(!containsItem(lockedGroup, "审核课外活动加分"));
+		assert(containsItem(lockedGroup, "查询项目"));
+		assert(containsItem(lockedGroup, "综测成绩生成"));
+		assert(lockedGroup.size() == 5);
+
+		const std::vector<std::string> unlockedStudent = StudentConsole::homeMenuItems(false);
+		assert(containsItem(unlockedStudent, "思想品德项目"));
+		assert(containsItem(unlockedStudent, "课外活动项目"));
+		assert(containsItem(unlockedStudent, "查询"));
+
+		const std::vector<std::string> lockedStudent = StudentConsole::homeMenuItems(true);
+		assert(!containsItem(lockedStudent, "思想品德项目"));
+		assert(!containsItem(lockedStudent, "课外活动项目"));
+		assert(containsItem(lockedStudent, "查询"));
+		assert(lockedStudent.size() == 4);
+
+		const std::vector<std::string> unlockedTeacher = TeacherConsole::homeMenuItems(false);
+		assert(containsItem(unlockedTeacher, "思想品德打分"));
+		assert(containsItem(unlockedTeacher, "修改思想品德打分"));
+		assert(containsItem(unlockedTeacher, "修改密码"));
+
+		const std::vector<std::string> lockedTeacher = TeacherConsole::homeMenuItems(true);
+		assert(!containsItem(lockedTeacher, "思想品德打分"));
+		assert(!containsItem(lockedTeacher, "修改思想品德打分"));
+		assert(containsItem(lockedTeacher, "修改密码"));
+		assert(lockedTeacher.size() == 3);
 	}
 
 	void testTextRequiredReadsNonBlankInput()
@@ -967,6 +1015,7 @@ int main()
 	testMenuInputRetries();
 	testScoreInputBoundaries();
 	testConfirmInput();
+	testGeneratedTotalHidesMutationMenuItems();
 	testTextRequiredReadsNonBlankInput();
 	testOptionalTextCanCancel();
 	testChoiceRetriesInvalidInput();

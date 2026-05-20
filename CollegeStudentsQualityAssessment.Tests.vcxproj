@@ -95,6 +95,9 @@
     <ClCompile Include="src\ui\ConsoleTable.cpp" />
     <ClCompile Include="src\ui\ConsoleTheme.cpp" />
     <ClCompile Include="src\ui\ConsoleView.cpp" />
+    <ClCompile Include="src\ui\GroupConsole.cpp" />
+    <ClCompile Include="src\ui\StudentConsole.cpp" />
+    <ClCompile Include="src\ui\TeacherConsole.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app\AppConfig.h" />
@@ -124,6 +127,9 @@
     <ClInclude Include="src\ui\ConsoleTable.h" />
     <ClInclude Include="src\ui\ConsoleTheme.h" />
     <ClInclude Include="src\ui\ConsoleView.h" />
+    <ClInclude Include="src\ui\GroupConsole.h" />
+    <ClInclude Include="src\ui\StudentConsole.h" />
+    <ClInclude Include="src\ui\TeacherConsole.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

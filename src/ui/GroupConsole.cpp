@@ -21,21 +21,45 @@ void GroupConsole::run()
 {
 	while (true)
 	{
-		ConsoleView::menu("测评小组首页", user_, { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" });
-		switch (ConsoleInput::menuChoice(8))
+		const bool totalGenerated = repository_.status().totalGenerated;
+		ConsoleView::menu("测评小组首页", user_, homeMenuItems(totalGenerated));
+		if (totalGenerated)
 		{
-		case '1': studyMenu(); break;
-		case '2': additionMenu(); break;
-		case '3': checkActivity(); break;
-		case '4': searchMenu(); break;
-		case '5': buildTotal(); break;
-		case '6': changePassword(); break;
-		case '0':
-		case '7': return;
-		case '8': std::exit(0);
-		default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			switch (ConsoleInput::menuChoice(5))
+			{
+			case '1': searchMenu(); break;
+			case '2': buildTotal(); break;
+			case '3': changePassword(); break;
+			case '0':
+			case '4': return;
+			case '5': std::exit(0);
+			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			}
+		}
+		else
+		{
+			switch (ConsoleInput::menuChoice(8))
+			{
+			case '1': studyMenu(); break;
+			case '2': additionMenu(); break;
+			case '3': checkActivity(); break;
+			case '4': searchMenu(); break;
+			case '5': buildTotal(); break;
+			case '6': changePassword(); break;
+			case '0':
+			case '7': return;
+			case '8': std::exit(0);
+			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			}
 		}
 	}
+}
+
+std::vector<std::string> GroupConsole::homeMenuItems(bool totalGenerated)
+{
+	if (totalGenerated)
+		return { "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
+	return { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
 }
 
 void GroupConsole::studyMenu()

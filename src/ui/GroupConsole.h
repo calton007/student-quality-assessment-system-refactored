@@ -4,11 +4,15 @@
 #include "AssessmentRepository.h"
 #include "UserRecord.h"
 
+#include <string>
+#include <vector>
+
 class GroupConsole
 {
 public:
 	GroupConsole(AssessmentRepository& repository, const UserRecord& user, const AppLogger& logger);
 	void run();
+	static std::vector<std::string> homeMenuItems(bool totalGenerated);
 
 private:
 	void studyMenu();

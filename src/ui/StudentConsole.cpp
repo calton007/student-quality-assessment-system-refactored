@@ -7,6 +7,7 @@
 #include "MoralService.h"
 #include "QueryService.h"
 
+#include <cstdlib>
 #include <iostream>
 
 StudentConsole::StudentConsole(AssessmentRepository& repository, const UserRecord& user)
@@ -18,19 +19,42 @@ void StudentConsole::run()
 {
 	while (true)
 	{
-		ConsoleView::menu("学生首页", user_, { "思想品德项目", "课外活动项目", "查询", "修改密码", "返回登陆界面", "退出系统" });
-		switch (ConsoleInput::menuChoice(6))
+		const bool totalGenerated = repository_.status().totalGenerated;
+		ConsoleView::menu("学生首页", user_, homeMenuItems(totalGenerated));
+		if (totalGenerated)
 		{
-		case '1': moralMenu(); break;
-		case '2': activityMenu(); break;
-		case '3': searchMenu(); break;
-		case '4': changePassword(); break;
-		case '0':
-		case '5': return;
-		case '6': std::exit(0);
-		default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			switch (ConsoleInput::menuChoice(4))
+			{
+			case '1': searchMenu(); break;
+			case '2': changePassword(); break;
+			case '0':
+			case '3': return;
+			case '4': std::exit(0);
+			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			}
+		}
+		else
+		{
+			switch (ConsoleInput::menuChoice(6))
+			{
+			case '1': moralMenu(); break;
+			case '2': activityMenu(); break;
+			case '3': searchMenu(); break;
+			case '4': changePassword(); break;
+			case '0':
+			case '5': return;
+			case '6': std::exit(0);
+			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+			}
 		}
 	}
+}
+
+std::vector<std::string> StudentConsole::homeMenuItems(bool totalGenerated)
+{
+	if (totalGenerated)
+		return { "查询", "修改密码", "返回登陆界面", "退出系统" };
+	return { "思想品德项目", "课外活动项目", "查询", "修改密码", "返回登陆界面", "退出系统" };
 }
 
 void StudentConsole::moralMenu()

@@ -3,11 +3,15 @@
 #include "AssessmentRepository.h"
 #include "UserRecord.h"
 
+#include <string>
+#include <vector>
+
 class StudentConsole
 {
 public:
 	StudentConsole(AssessmentRepository& repository, const UserRecord& user);
 	void run();
+	static std::vector<std::string> homeMenuItems(bool totalGenerated);
 
 private:
 	void moralMenu();
