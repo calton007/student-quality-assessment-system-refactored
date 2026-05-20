@@ -25,6 +25,7 @@ private:
 	void deleteAddition();
 	void checkActivity();
 	void searchMenu();
+	void exportTotals();
 	void buildTotal();
 	void changePassword();
 	bool requireStudent(const std::string& account) const;

@@ -55,6 +55,7 @@ public:
 	const std::multimap<std::string, MoralRecord>& studentMoralsByGiver() const;
 	std::map<std::string, MoralRecord>& teacherMorals();
 	const std::map<std::string, MoralRecord>& teacherMorals() const;
+	const std::string& runtimeDataDirectory() const;
 
 private:
 	std::string buildPath(const std::string& directory, const std::string& fileName) const;

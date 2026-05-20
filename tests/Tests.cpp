@@ -11,6 +11,7 @@
 #include "ConsoleInput.h"
 #include "ConsoleTable.h"
 #include "ConsoleView.h"
+#include "ExportService.h"
 #include "GroupConsole.h"
 #include "MoralService.h"
 #include "PasswordHasher.h"
@@ -301,8 +302,9 @@ namespace
 		assert(!containsItem(lockedGroup, "附加分管理"));
 		assert(!containsItem(lockedGroup, "审核课外活动加分"));
 		assert(containsItem(lockedGroup, "查询项目"));
+		assert(containsItem(lockedGroup, "导出综测成绩"));
 		assert(containsItem(lockedGroup, "综测成绩生成"));
-		assert(lockedGroup.size() == 5);
+		assert(lockedGroup.size() == 6);
 
 		const std::vector<std::string> unlockedStudent = StudentConsole::homeMenuItems(false);
 		assert(containsItem(unlockedStudent, "思想品德项目"));
@@ -640,6 +642,34 @@ namespace
 		assert(closeTo(score.addition, 5.0f));
 		assert(closeTo(score.total, 91.5f));
 		assert(score.rank == 1);
+	}
+
+	void testExportTotalsCsv()
+	{
+		const std::filesystem::path directory = prepareRepositoryData();
+		AssessmentRepository repository(directory.string());
+		repository.loadAll();
+
+		bool exportBeforeBuildFailed = false;
+		try
+		{
+			ExportService(repository).exportTotalsCsv();
+		}
+		catch (const std::runtime_error&)
+		{
+			exportBeforeBuildFailed = true;
+		}
+		assert(exportBeforeBuildFailed);
+
+		ScoreService(repository).buildTotal();
+		const std::string path = ExportService(repository).exportTotalsCsv();
+		const std::string csv = readFile(path);
+		assert(csv.size() > 3);
+		assert(static_cast<unsigned char>(csv[0]) == 0xEF);
+		assert(static_cast<unsigned char>(csv[1]) == 0xBB);
+		assert(static_cast<unsigned char>(csv[2]) == 0xBF);
+		assert(csv.find("学号,姓名,学习成绩,GPA,课外活动成绩,思想品德成绩,附加分,综测成绩,排名") != std::string::npos);
+		assert(csv.find("10002,学生1,100,4,10,100,5,91.5,1") != std::string::npos);
 	}
 
 	void testDefaultStateAndTotalQueryGate()
@@ -1043,6 +1073,7 @@ int main()
 	testBackupFileGenerated();
 	testFailedSaveKeepsOldFile();
 	testRepositoryAuthAndScoreService();
+	testExportTotalsCsv();
 	testDefaultStateAndTotalQueryGate();
 	testMutationServices();
 	testTotalGenerationLocksMutationsAndRevokeUnlocks();

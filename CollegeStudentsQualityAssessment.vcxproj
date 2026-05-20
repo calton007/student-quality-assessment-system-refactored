@@ -93,6 +93,7 @@
     <ClCompile Include="src\service\ActivityService.cpp" />
     <ClCompile Include="src\service\AuthService.cpp" />
     <ClCompile Include="src\service\CourseService.cpp" />
+    <ClCompile Include="src\service\ExportService.cpp" />
     <ClCompile Include="src\service\MoralService.cpp" />
     <ClCompile Include="src\service\PasswordHasher.cpp" />
     <ClCompile Include="src\service\QueryService.cpp" />
@@ -126,6 +127,7 @@
     <ClInclude Include="src\service\ActivityService.h" />
     <ClInclude Include="src\service\AuthService.h" />
     <ClInclude Include="src\service\CourseService.h" />
+    <ClInclude Include="src\service\ExportService.h" />
     <ClInclude Include="src\service\MoralService.h" />
     <ClInclude Include="src\service\PasswordHasher.h" />
     <ClInclude Include="src\service\QueryService.h" />

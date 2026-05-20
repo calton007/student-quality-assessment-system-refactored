@@ -7,6 +7,7 @@
 #include "ConsoleTable.h"
 #include "ConsoleView.h"
 #include "CourseService.h"
+#include "ExportService.h"
 #include "QueryService.h"
 #include "ScoreService.h"
 
@@ -75,14 +76,15 @@ void GroupConsole::run()
 		ConsoleView::menu("测评小组首页", user_, homeMenuItems(totalGenerated));
 		if (totalGenerated)
 		{
-			switch (ConsoleInput::menuChoice(5))
+			switch (ConsoleInput::menuChoice(6))
 			{
 			case '1': searchMenu(); break;
-			case '2': buildTotal(); break;
-			case '3': changePassword(); break;
+			case '2': exportTotals(); break;
+			case '3': buildTotal(); break;
+			case '4': changePassword(); break;
 			case '0':
-			case '4': return;
-			case '5': std::exit(0);
+			case '5': return;
+			case '6': std::exit(0);
 			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 			}
 		}
@@ -108,7 +110,7 @@ void GroupConsole::run()
 std::vector<std::string> GroupConsole::homeMenuItems(bool totalGenerated)
 {
 	if (totalGenerated)
-		return { "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
+		return { "查询项目", "导出综测成绩", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
 	return { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
 }
 
@@ -350,6 +352,19 @@ void GroupConsole::searchMenu()
 			throw std::runtime_error("尚未生成综测成绩,无法查询!");
 		ConsoleView::menu("测评小组首页 / 查询项目", user_, std::vector<std::string>());
 		ConsoleView::scores(query.allScores());
+	}
+	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
+	ConsoleInput::pause();
+}
+
+void GroupConsole::exportTotals()
+{
+	try
+	{
+		ConsoleView::menu("测评小组首页 / 导出综测成绩", user_, std::vector<std::string>());
+		const std::string path = ExportService(repository_).exportTotalsCsv();
+		logger_.info("total exported by: " + user_.account);
+		ConsoleView::message("导出成功: " + path);
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
 	ConsoleInput::pause();

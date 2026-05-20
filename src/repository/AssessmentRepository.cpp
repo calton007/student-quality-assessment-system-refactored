@@ -417,6 +417,7 @@ std::multimap<std::string, MoralRecord>& AssessmentRepository::studentMoralsByGi
 const std::multimap<std::string, MoralRecord>& AssessmentRepository::studentMoralsByGiver() const { return studentMoralsByGiver_; }
 std::map<std::string, MoralRecord>& AssessmentRepository::teacherMorals() { return teacherMorals_; }
 const std::map<std::string, MoralRecord>& AssessmentRepository::teacherMorals() const { return teacherMorals_; }
+const std::string& AssessmentRepository::runtimeDataDirectory() const { return runtimeDataDirectory_; }
 
 std::string AssessmentRepository::buildPath(const std::string& directory, const std::string& fileName) const
 {
