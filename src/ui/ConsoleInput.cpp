@@ -1,12 +1,25 @@
 #include "ConsoleInput.h"
 
 #include "ConsoleTheme.h"
+#include "ConsoleView.h"
 
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <vector>
+
+namespace
+{
+	template <typename T>
+	std::string toText(const T& value)
+	{
+		std::ostringstream output;
+		output << value;
+		return output.str();
+	}
+}
 
 char ConsoleInput::menuChoice(int maxChoice)
 {
@@ -23,7 +36,7 @@ int ConsoleInput::choice(const std::string& prompt, int maxChoice)
 			return value;
 		std::cin.clear();
 		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-		std::cout << ConsoleTheme::invalidMenuChoice() << std::endl;
+		ConsoleView::error(ConsoleTheme::invalidMenuChoice());
 	}
 }
 
@@ -37,7 +50,7 @@ int ConsoleInput::lineNumber(int maxLine)
 			return value;
 		std::cin.clear();
 		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-		std::cout << ConsoleTheme::invalidLineNumber() << std::endl;
+		ConsoleView::error(ConsoleTheme::invalidLineNumber());
 	}
 }
 
@@ -51,7 +64,7 @@ float ConsoleInput::score(float min, float max, const std::string& label)
 			return value;
 		std::cin.clear();
 		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-		std::cout << "请输入" << min << "-" << max << "之间的" << label << "!" << std::endl;
+		ConsoleView::error("请输入" + toText(min) + "-" + toText(max) + "之间的" + label + "!");
 	}
 }
 
@@ -72,7 +85,7 @@ std::vector<float> ConsoleInput::moralScores(const std::vector<std::string>& ite
 			}
 			std::cin.clear();
 			std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-			std::cout << "请输入0-10之间的分数!" << std::endl;
+			ConsoleView::error("请输入0-10之间的分数!");
 		}
 	}
 	return scores;
@@ -88,7 +101,7 @@ bool ConsoleInput::confirm(const std::string& prompt)
 			return value == 1;
 		std::cin.clear();
 		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-		std::cout << "请输入1确认或0取消!" << std::endl;
+		ConsoleView::error("请输入1确认或0取消!");
 	}
 }
 
@@ -133,7 +146,7 @@ std::string ConsoleInput::textRequired(const std::string& prompt)
 			return value;
 		std::cin.clear();
 		std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
-		std::cout << "输入不能为空!" << std::endl;
+		ConsoleView::error("输入不能为空!");
 	}
 }
 

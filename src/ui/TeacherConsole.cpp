@@ -26,7 +26,7 @@ void TeacherConsole::run()
 		case '0':
 		case '4': return;
 		case '5': std::exit(0);
-		default: ConsoleView::message("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+		default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 		}
 	}
 }
@@ -71,6 +71,9 @@ void TeacherConsole::modifyMoral()
 		if (row == 0)
 			return;
 		MoralRecord record = records[row - 1];
+		auto iterator = repository_.users().find(record.receiverAccount);
+		if (iterator != repository_.users().end())
+			ConsoleView::operation(iterator->second.name, record.receiverAccount, "思想品德", "修改");
 		record.scores = ConsoleInput::moralScores(ConsoleInput::teacherMoralItems());
 		service.updateTeacherMoral(row, record);
 		ConsoleView::message("修改成功!");

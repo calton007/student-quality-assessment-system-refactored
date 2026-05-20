@@ -28,7 +28,7 @@ void StudentConsole::run()
 		case '0':
 		case '5': return;
 		case '6': std::exit(0);
-		default: ConsoleView::message("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+		default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 		}
 	}
 }
@@ -88,6 +88,7 @@ void StudentConsole::modifyMoral()
 		if (row == 0)
 			return;
 		MoralRecord record = records[row - 1];
+		ConsoleView::operation(repository_.users()[record.receiverAccount].name, record.receiverAccount, "思想品德", "修改");
 		record.scores = ConsoleInput::moralScores(ConsoleInput::studentMoralItems());
 		service.updateStudentMoral(user_.account, row, record);
 		ConsoleView::message("修改成功!");
@@ -140,10 +141,10 @@ void StudentConsole::modifyActivity()
 		int row = ConsoleInput::lineNumber(static_cast<int>(records.size()));
 		if (row == 0)
 			return;
-		ConsoleView::operation(user_.name, user_.account, "课外活动", "修改");
 		std::string name = ConsoleInput::optionalText("活动名称(返回请输入0):");
 		if (name.empty())
 			return;
+		ConsoleView::operation(user_.name, user_.account, "课外活动", "修改");
 		service.updateStudentActivity(user_.account, row, name, ConsoleInput::score(0.5f, 20.0f, "活动分"));
 		ConsoleView::message("修改成功!");
 	}

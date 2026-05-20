@@ -38,7 +38,7 @@ void ConsoleView::message(const std::string& value)
 
 void ConsoleView::error(const std::string& value)
 {
-	std::cout << value << std::endl;
+	std::cout << "[错误] " << value << std::endl;
 }
 
 void ConsoleView::menu(const std::vector<std::string>& items)

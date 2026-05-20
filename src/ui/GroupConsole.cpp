@@ -33,7 +33,7 @@ void GroupConsole::run()
 		case '0':
 		case '7': return;
 		case '8': std::exit(0);
-		default: ConsoleView::message("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
+		default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 		}
 	}
 }
@@ -170,6 +170,7 @@ void GroupConsole::newAddition()
 			std::string name = ConsoleInput::optionalText("项目名称(返回请输入0):");
 			if (name.empty())
 				return;
+			ConsoleView::operation("全体学生", "ALL", "附加分", "录入");
 			service.createGroupAddition(name, ConsoleInput::score(0.5f, 5.0f, "附加分"));
 		}
 		else if (mode == 2)
@@ -259,7 +260,7 @@ void GroupConsole::checkActivity()
 		else if (choice == 2)
 			service.rejectActivity(row);
 		else
-			throw std::runtime_error("您的输入有误!");
+			throw std::runtime_error("您的输入有误,请重新输入!");
 		ConsoleView::message("操作成功");
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
@@ -334,7 +335,7 @@ bool GroupConsole::requireStudent(const std::string& account) const
 	std::map<std::string, UserRecord>::const_iterator iter = repository_.users().find(account);
 	if (iter == repository_.users().end() || iter->second.role != UserRole::Student)
 	{
-		ConsoleView::message("没有学号为" + account + "的学生!");
+		ConsoleView::error("没有学号为" + account + "的学生!");
 		return false;
 	}
 	return true;
