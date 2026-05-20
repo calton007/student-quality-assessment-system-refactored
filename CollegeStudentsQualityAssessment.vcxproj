@@ -92,6 +92,7 @@
     <ClCompile Include="src\service\AdditionService.cpp" />
     <ClCompile Include="src\service\ActivityService.cpp" />
     <ClCompile Include="src\service\AuthService.cpp" />
+    <ClCompile Include="src\service\BackupService.cpp" />
     <ClCompile Include="src\service\CourseService.cpp" />
     <ClCompile Include="src\service\ExportService.cpp" />
     <ClCompile Include="src\service\MoralService.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="src\service\AdditionService.h" />
     <ClInclude Include="src\service\ActivityService.h" />
     <ClInclude Include="src\service\AuthService.h" />
+    <ClInclude Include="src\service\BackupService.h" />
     <ClInclude Include="src\service\CourseService.h" />
     <ClInclude Include="src\service\ExportService.h" />
     <ClInclude Include="src\service\MoralService.h" />

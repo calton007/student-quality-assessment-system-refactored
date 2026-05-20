@@ -7,6 +7,7 @@
 #include "ActivityService.h"
 #include "AdditionService.h"
 #include "AuthService.h"
+#include "BackupService.h"
 #include "CourseService.h"
 #include "ConsoleInput.h"
 #include "ConsoleTable.h"
@@ -297,6 +298,7 @@ namespace
 		assert(containsItem(unlockedGroup, "附加分管理"));
 		assert(containsItem(unlockedGroup, "审核课外活动加分"));
 		assert(containsItem(unlockedGroup, "查询项目"));
+		assert(containsItem(unlockedGroup, "数据备份恢复"));
 
 		const std::vector<std::string> lockedGroup = GroupConsole::homeMenuItems(true);
 		assert(!containsItem(lockedGroup, "学习成绩管理"));
@@ -306,7 +308,8 @@ namespace
 		assert(containsItem(lockedGroup, "综测成绩详情"));
 		assert(containsItem(lockedGroup, "导出综测成绩"));
 		assert(containsItem(lockedGroup, "综测成绩生成"));
-		assert(lockedGroup.size() == 7);
+		assert(containsItem(lockedGroup, "数据备份恢复"));
+		assert(lockedGroup.size() == 8);
 
 		const std::vector<std::string> unlockedStudent = StudentConsole::homeMenuItems(false);
 		assert(containsItem(unlockedStudent, "思想品德项目"));
@@ -693,6 +696,26 @@ namespace
 		assert(detail.teacherMorals.size() == 1);
 		assert(repository.courses().size() == courseCount);
 		assert(repository.activities().size() == activityCount);
+	}
+
+	void testBackupAndRestoreRuntimeDirectory()
+	{
+		const std::filesystem::path directory = prepareRepositoryData();
+		AssessmentRepository repository(directory.string());
+		repository.loadAll();
+		BackupService backupService(repository);
+		const std::string backupPath = backupService.createBackup();
+		assert(std::filesystem::is_directory(backupPath));
+		assert(!std::filesystem::exists(std::filesystem::path(backupPath) / "backups"));
+
+		CourseService(repository).createCourse("10002", "临时课", 1.0f, 80.0f);
+		assert(repository.courses().count("10002") == 2);
+
+		const std::string safetyBackup = backupService.restoreBackup(std::filesystem::path(backupPath).filename().string());
+		assert(std::filesystem::is_directory(safetyBackup));
+		repository.loadAll();
+		assert(repository.courses().count("10002") == 1);
+		assert(!backupService.listBackups().empty());
 	}
 
 	void testDefaultStateAndTotalQueryGate()
@@ -1098,6 +1121,7 @@ int main()
 	testRepositoryAuthAndScoreService();
 	testExportTotalsCsv();
 	testScoreDetailIsReadOnly();
+	testBackupAndRestoreRuntimeDirectory();
 	testDefaultStateAndTotalQueryGate();
 	testMutationServices();
 	testTotalGenerationLocksMutationsAndRevokeUnlocks();

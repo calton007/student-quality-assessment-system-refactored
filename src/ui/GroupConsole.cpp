@@ -3,6 +3,7 @@
 #include "ActivityService.h"
 #include "AdditionService.h"
 #include "AuthService.h"
+#include "BackupService.h"
 #include "ConsoleInput.h"
 #include "ConsoleTable.h"
 #include "ConsoleView.h"
@@ -78,6 +79,24 @@ namespace
 		ConsoleView::message("辅导员评分:");
 		ConsoleView::morals(detail.teacherMorals);
 	}
+
+	void displayBackups(const std::vector<BackupEntry>& entries)
+	{
+		std::vector<std::vector<std::string>> rows;
+		for (size_t index = 0; index < entries.size(); ++index)
+		{
+			std::vector<std::string> row;
+			row.push_back(std::to_string(index + 1));
+			row.push_back(entries[index].name);
+			row.push_back(entries[index].path);
+			rows.push_back(row);
+		}
+		ConsoleTable::render({
+			ConsoleTable::Column("行号", 8),
+			ConsoleTable::Column("备份名", 34),
+			ConsoleTable::Column("路径", 70)
+		}, rows);
+	}
 }
 
 GroupConsole::GroupConsole(AssessmentRepository& repository, const UserRecord& user, const AppLogger& logger)
@@ -93,32 +112,34 @@ void GroupConsole::run()
 		ConsoleView::menu("测评小组首页", user_, homeMenuItems(totalGenerated));
 		if (totalGenerated)
 		{
-			switch (ConsoleInput::menuChoice(7))
+			switch (ConsoleInput::menuChoice(8))
 			{
 			case '1': searchMenu(); break;
 			case '2': scoreDetail(); break;
 			case '3': exportTotals(); break;
 			case '4': buildTotal(); break;
-			case '5': changePassword(); break;
+			case '5': backupMenu(); break;
+			case '6': changePassword(); break;
 			case '0':
-			case '6': return;
-			case '7': std::exit(0);
+			case '7': return;
+			case '8': std::exit(0);
 			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 			}
 		}
 		else
 		{
-			switch (ConsoleInput::menuChoice(8))
+			switch (ConsoleInput::menuChoice(9))
 			{
 			case '1': studyMenu(); break;
 			case '2': additionMenu(); break;
 			case '3': checkActivity(); break;
 			case '4': searchMenu(); break;
 			case '5': buildTotal(); break;
-			case '6': changePassword(); break;
+			case '6': backupMenu(); break;
+			case '7': changePassword(); break;
 			case '0':
-			case '7': return;
-			case '8': std::exit(0);
+			case '8': return;
+			case '9': std::exit(0);
 			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 			}
 		}
@@ -128,8 +149,8 @@ void GroupConsole::run()
 std::vector<std::string> GroupConsole::homeMenuItems(bool totalGenerated)
 {
 	if (totalGenerated)
-		return { "查询项目", "综测成绩详情", "导出综测成绩", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
-	return { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
+		return { "查询项目", "综测成绩详情", "导出综测成绩", "综测成绩生成", "数据备份恢复", "修改密码", "返回登陆界面", "退出系统" };
+	return { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "数据备份恢复", "修改密码", "返回登陆界面", "退出系统" };
 }
 
 void GroupConsole::studyMenu()
@@ -397,6 +418,41 @@ void GroupConsole::exportTotals()
 		const std::string path = ExportService(repository_).exportTotalsCsv();
 		logger_.info("total exported by: " + user_.account);
 		ConsoleView::message("导出成功: " + path);
+	}
+	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
+	ConsoleInput::pause();
+}
+
+void GroupConsole::backupMenu()
+{
+	try
+	{
+		ConsoleView::menu("测评小组首页 / 数据备份恢复", user_, { "创建备份", "恢复备份", "返回" });
+		const int choice = ConsoleInput::choice("请选择", 3);
+		if (choice == 0 || choice == 3)
+			return;
+		BackupService service(repository_);
+		if (choice == 1)
+		{
+			const std::string path = service.createBackup();
+			logger_.info("backup created by: " + user_.account);
+			ConsoleView::message("备份成功: " + path);
+			return;
+		}
+
+		std::vector<BackupEntry> backups = service.listBackups();
+		if (backups.empty())
+			throw std::runtime_error("暂无可恢复的备份");
+		displayBackups(backups);
+		const int row = ConsoleInput::lineNumber(static_cast<int>(backups.size()));
+		if (row == 0)
+			return;
+		if (!ConsoleInput::confirm("恢复会覆盖当前运行数据，是否继续"))
+			return;
+		const std::string safetyBackup = service.restoreBackup(backups[row - 1].name);
+		repository_.loadAll();
+		logger_.info("backup restored by: " + user_.account);
+		ConsoleView::message("恢复成功，恢复前数据已备份到: " + safetyBackup);
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
 	ConsoleInput::pause();
