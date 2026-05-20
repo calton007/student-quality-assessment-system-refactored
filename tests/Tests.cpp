@@ -877,11 +877,11 @@ namespace
 		assert(repository.courses().count("10002") == 2);
 	}
 
-	void testCancelledModeDoesNotSave()
-	{
-		const std::filesystem::path directory = prepareRepositoryData();
-		AssessmentRepository repository(directory.string());
-		repository.loadAll();
+void testCancelledModeDoesNotSave()
+{
+	const std::filesystem::path directory = prepareRepositoryData();
+	AssessmentRepository repository(directory.string());
+	repository.loadAll();
 		const size_t originalCount = repository.courses().size();
 
 		std::istringstream input("0\n");
@@ -894,8 +894,57 @@ namespace
 
 		if (mode != 0)
 			CourseService(repository).createCourse("10002", "不应保存", 1.0f, 80.0f);
-		assert(repository.courses().size() == originalCount);
-	}
+	assert(repository.courses().size() == originalCount);
+}
+
+void testDefaultAccountFullFlow()
+{
+	const std::filesystem::path directory = cleanTestDirectory("test-default-account-full-flow");
+	writeFile(directory / "User.txt",
+		"3\n"
+		"10000\t测评小组\t" + PasswordHasher::hash("888888") + "\t2\n"
+		"10001\t辅导员\t" + PasswordHasher::hash("888888") + "\t1\n"
+		"10002\t学生1\t" + PasswordHasher::hash("888888") + "\t0\n");
+
+	AssessmentRepository repository(directory.string());
+	repository.loadAll();
+
+	AuthService auth(repository);
+	auth.login("10000", "888888");
+	auth.login("10001", "888888");
+	auth.login("10002", "888888");
+
+	CourseService courseService(repository);
+	courseService.createCourse("10002", "数学", 2.0f, 90.0f);
+
+	MoralService moralService(repository);
+	MoralRecord studentRecord;
+	studentRecord.receiverAccount = "10002";
+	studentRecord.giverAccount = "10002";
+	for (size_t index = 0; index < 9; ++index)
+		studentRecord.scores.push_back(10.0f);
+	moralService.submitStudentMoral("10002", std::vector<MoralRecord>(1, studentRecord));
+
+	MoralRecord teacherRecord;
+	teacherRecord.receiverAccount = "10002";
+	for (size_t index = 0; index < 3; ++index)
+		teacherRecord.scores.push_back(10.0f);
+	moralService.submitTeacherMoral("10001", std::vector<MoralRecord>(1, teacherRecord));
+
+	ScoreService scoreService(repository);
+	const TotalBuildResult readiness = scoreService.validateBeforeBuild();
+	assert(readiness.ready);
+	scoreService.buildTotal();
+	assert(repository.status().totalGenerated);
+	assert(repository.totals().find("10002")->second.total > 0.0f);
+
+	QueryService query(repository);
+	const StudentScore& score = query.scoreFor("10002");
+	assert(closeTo(score.study, 95.0f));
+
+	scoreService.revokeTotal();
+	assert(!repository.status().totalGenerated);
+}
 }
 
 int main()
@@ -938,5 +987,6 @@ int main()
 	testMutationServices();
 	testTotalGenerationLocksMutationsAndRevokeUnlocks();
 	testCancelledModeDoesNotSave();
+	testDefaultAccountFullFlow();
 	return 0;
 }
