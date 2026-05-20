@@ -45,6 +45,8 @@ TotalBuildResult ScoreService::validateBeforeBuild() const
 
 	TotalBuildResult result;
 	result.errors = TotalValidation::validateReadiness(students, studentCount, pendingActivities);
+	result.students = students;
+	result.pendingActivityAccounts = pendingActivities;
 	result.ready = result.errors.empty();
 	return result;
 }

@@ -4,6 +4,7 @@
 #include "AdditionService.h"
 #include "AuthService.h"
 #include "ConsoleInput.h"
+#include "ConsoleTable.h"
 #include "ConsoleView.h"
 #include "CourseService.h"
 #include "QueryService.h"
@@ -11,6 +12,55 @@
 
 #include <cstdlib>
 #include <iostream>
+
+namespace
+{
+	std::string readinessStatus(bool value)
+	{
+		return value ? "完成" : "缺失";
+	}
+
+	std::string countStatus(int actual, int expected)
+	{
+		if (actual == expected)
+			return "完成";
+		return std::to_string(actual) + "/" + std::to_string(expected);
+	}
+
+	void displayReadinessReport(const TotalBuildResult& result)
+	{
+		if (result.ready)
+		{
+			ConsoleView::message("生成条件已满足，可以生成综测成绩。");
+			return;
+		}
+
+		const int studentCount = static_cast<int>(result.students.size());
+		std::vector<std::vector<std::string>> rows;
+		for (std::vector<TotalValidation::StudentReadiness>::const_iterator iter = result.students.begin(); iter != result.students.end(); ++iter)
+		{
+			std::vector<std::string> row;
+			row.push_back(iter->account);
+			row.push_back(iter->name);
+			row.push_back(readinessStatus(iter->hasCourse));
+			row.push_back(countStatus(iter->studentMoralCount, studentCount));
+			row.push_back(readinessStatus(iter->hasTeacherMoral));
+			row.push_back(readinessStatus(iter->moralFinished));
+			rows.push_back(row);
+		}
+		ConsoleTable::render({
+			ConsoleTable::Column("学号", 10),
+			ConsoleTable::Column("姓名", 12),
+			ConsoleTable::Column("课程成绩", 12),
+			ConsoleTable::Column("学生互评", 12),
+			ConsoleTable::Column("辅导员评分", 14),
+			ConsoleTable::Column("本人互评", 12)
+		}, rows);
+
+		for (std::vector<std::string>::const_iterator iter = result.pendingActivityAccounts.begin(); iter != result.pendingActivityAccounts.end(); ++iter)
+			ConsoleView::message(*iter + "存在未审核的课外活动");
+	}
+}
 
 GroupConsole::GroupConsole(AssessmentRepository& repository, const UserRecord& user, const AppLogger& logger)
 	: repository_(repository), user_(user), logger_(logger)
@@ -322,15 +372,19 @@ void GroupConsole::buildTotal()
 		}
 		else
 		{
-			ConsoleView::menu("测评小组首页 / 综测成绩生成", user_, { "生成综测成绩", "返回" });
-			const int choice = ConsoleInput::choice("请选择", 2);
-			if (choice == 0 || choice == 2)
+			ConsoleView::menu("测评小组首页 / 综测成绩生成", user_, { "检查生成条件", "生成综测成绩", "返回" });
+			const int choice = ConsoleInput::choice("请选择", 3);
+			if (choice == 0 || choice == 3)
 				return;
 			TotalBuildResult result = service.validateBeforeBuild();
+			if (choice == 1)
+			{
+				displayReadinessReport(result);
+				return;
+			}
 			if (!result.ready)
 			{
-				for (std::vector<std::string>::const_iterator iter = result.errors.begin(); iter != result.errors.end(); ++iter)
-					ConsoleView::message(*iter);
+				displayReadinessReport(result);
 				throw std::runtime_error("请先完成以上项目，再生成综测总分!");
 			}
 			service.buildTotal();

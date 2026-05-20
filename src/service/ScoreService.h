@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AssessmentRepository.h"
+#include "TotalValidation.h"
 
 #include <string>
 #include <vector>
@@ -9,6 +10,8 @@ struct TotalBuildResult
 {
 	bool ready;
 	std::vector<std::string> errors;
+	std::vector<TotalValidation::StudentReadiness> students;
+	std::vector<std::string> pendingActivityAccounts;
 };
 
 class ScoreService

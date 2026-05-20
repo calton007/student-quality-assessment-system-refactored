@@ -628,6 +628,9 @@ namespace
 		ScoreService scoreService(repository);
 		TotalBuildResult readiness = scoreService.validateBeforeBuild();
 		assert(readiness.ready);
+		assert(readiness.students.size() == 1);
+		assert(readiness.students[0].account == "10002");
+		assert(readiness.pendingActivityAccounts.empty());
 		scoreService.buildTotal();
 
 		const StudentScore& score = repository.totals().find("10002")->second;
@@ -658,6 +661,14 @@ namespace
 		repository.loadAll();
 
 		assert(repository.status().studentMoralFinishedAccounts.empty());
+		TotalBuildResult readiness = ScoreService(repository).validateBeforeBuild();
+		assert(!readiness.ready);
+		assert(readiness.students.size() == 1);
+		assert(readiness.students[0].account == "10002");
+		assert(!readiness.students[0].moralFinished);
+		assert(!readiness.students[0].hasCourse);
+		assert(!readiness.students[0].hasTeacherMoral);
+		assert(readiness.students[0].studentMoralCount == 0);
 		QueryService query(repository);
 		assert(!query.totalGenerated());
 		assert(repository.totals().count("10002") == 1);
