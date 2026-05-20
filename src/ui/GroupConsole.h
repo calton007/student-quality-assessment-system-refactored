@@ -25,6 +25,7 @@ private:
 	void deleteAddition();
 	void checkActivity();
 	void searchMenu();
+	void scoreDetail();
 	void exportTotals();
 	void buildTotal();
 	void changePassword();

@@ -97,6 +97,7 @@
     <ClCompile Include="src\service\MoralService.cpp" />
     <ClCompile Include="src\service\PasswordHasher.cpp" />
     <ClCompile Include="src\service\QueryService.cpp" />
+    <ClCompile Include="src\service\ScoreDetailService.cpp" />
     <ClCompile Include="src\service\ScoreCalculator.cpp" />
     <ClCompile Include="src\service\ScoreService.cpp" />
     <ClCompile Include="src\service\TotalValidation.cpp" />
@@ -131,6 +132,7 @@
     <ClInclude Include="src\service\MoralService.h" />
     <ClInclude Include="src\service\PasswordHasher.h" />
     <ClInclude Include="src\service\QueryService.h" />
+    <ClInclude Include="src\service\ScoreDetailService.h" />
     <ClInclude Include="src\service\ScoreCalculator.h" />
     <ClInclude Include="src\service\ScoreService.h" />
     <ClInclude Include="src\service\TotalValidation.h" />

@@ -6,9 +6,29 @@
 #include "ConsoleView.h"
 #include "MoralService.h"
 #include "QueryService.h"
+#include "ScoreDetailService.h"
 
 #include <cstdlib>
 #include <iostream>
+
+namespace
+{
+	void displayScoreDetail(const ScoreDetail& detail)
+	{
+		ConsoleView::message("学生: " + detail.user.name + "(" + detail.user.account + ")");
+		ConsoleView::scores(std::vector<StudentScore>(1, detail.score));
+		ConsoleView::message("课程成绩:");
+		ConsoleView::courses(detail.courses);
+		ConsoleView::message("课外活动:");
+		ConsoleView::activities(detail.activities);
+		ConsoleView::message("附加分:");
+		ConsoleView::activities(detail.additions);
+		ConsoleView::message("学生互评:");
+		ConsoleView::morals(detail.studentMorals);
+		ConsoleView::message("辅导员评分:");
+		ConsoleView::morals(detail.teacherMorals);
+	}
+}
 
 StudentConsole::StudentConsole(AssessmentRepository& repository, const UserRecord& user)
 	: repository_(repository), user_(user)
@@ -209,9 +229,8 @@ void StudentConsole::searchMenu()
 		QueryService query(repository_);
 		if (!query.totalGenerated())
 			throw std::runtime_error("尚未生成综测成绩,无法查询!");
-		const StudentScore& score = query.scoreFor(user_.account);
 		ConsoleView::menu("学生首页 / 查询", user_, std::vector<std::string>());
-		ConsoleView::scores(std::vector<StudentScore>(1, score));
+		displayScoreDetail(ScoreDetailService(repository_).detailFor(user_.account));
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
 	ConsoleInput::pause();

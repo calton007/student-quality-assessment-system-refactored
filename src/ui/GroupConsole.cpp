@@ -9,6 +9,7 @@
 #include "CourseService.h"
 #include "ExportService.h"
 #include "QueryService.h"
+#include "ScoreDetailService.h"
 #include "ScoreService.h"
 
 #include <cstdlib>
@@ -61,6 +62,22 @@ namespace
 		for (std::vector<std::string>::const_iterator iter = result.pendingActivityAccounts.begin(); iter != result.pendingActivityAccounts.end(); ++iter)
 			ConsoleView::message(*iter + "存在未审核的课外活动");
 	}
+
+	void displayScoreDetail(const ScoreDetail& detail)
+	{
+		ConsoleView::message("学生: " + detail.user.name + "(" + detail.user.account + ")");
+		ConsoleView::scores(std::vector<StudentScore>(1, detail.score));
+		ConsoleView::message("课程成绩:");
+		ConsoleView::courses(detail.courses);
+		ConsoleView::message("课外活动:");
+		ConsoleView::activities(detail.activities);
+		ConsoleView::message("附加分:");
+		ConsoleView::activities(detail.additions);
+		ConsoleView::message("学生互评:");
+		ConsoleView::morals(detail.studentMorals);
+		ConsoleView::message("辅导员评分:");
+		ConsoleView::morals(detail.teacherMorals);
+	}
 }
 
 GroupConsole::GroupConsole(AssessmentRepository& repository, const UserRecord& user, const AppLogger& logger)
@@ -76,15 +93,16 @@ void GroupConsole::run()
 		ConsoleView::menu("测评小组首页", user_, homeMenuItems(totalGenerated));
 		if (totalGenerated)
 		{
-			switch (ConsoleInput::menuChoice(6))
+			switch (ConsoleInput::menuChoice(7))
 			{
 			case '1': searchMenu(); break;
-			case '2': exportTotals(); break;
-			case '3': buildTotal(); break;
-			case '4': changePassword(); break;
+			case '2': scoreDetail(); break;
+			case '3': exportTotals(); break;
+			case '4': buildTotal(); break;
+			case '5': changePassword(); break;
 			case '0':
-			case '5': return;
-			case '6': std::exit(0);
+			case '6': return;
+			case '7': std::exit(0);
 			default: ConsoleView::error("您的输入有误,请重新输入!"); ConsoleInput::pause(); break;
 			}
 		}
@@ -110,7 +128,7 @@ void GroupConsole::run()
 std::vector<std::string> GroupConsole::homeMenuItems(bool totalGenerated)
 {
 	if (totalGenerated)
-		return { "查询项目", "导出综测成绩", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
+		return { "查询项目", "综测成绩详情", "导出综测成绩", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
 	return { "学习成绩管理", "附加分管理", "审核课外活动加分", "查询项目", "综测成绩生成", "修改密码", "返回登陆界面", "退出系统" };
 }
 
@@ -352,6 +370,20 @@ void GroupConsole::searchMenu()
 			throw std::runtime_error("尚未生成综测成绩,无法查询!");
 		ConsoleView::menu("测评小组首页 / 查询项目", user_, std::vector<std::string>());
 		ConsoleView::scores(query.allScores());
+	}
+	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
+	ConsoleInput::pause();
+}
+
+void GroupConsole::scoreDetail()
+{
+	try
+	{
+		ConsoleView::menu("测评小组首页 / 综测成绩详情", user_, std::vector<std::string>());
+		std::string account = ConsoleInput::optionalText("学号(返回请输入0):");
+		if (account.empty())
+			return;
+		displayScoreDetail(ScoreDetailService(repository_).detailFor(account));
 	}
 	catch (const std::exception& ex) { ConsoleView::error(ex.what()); }
 	ConsoleInput::pause();

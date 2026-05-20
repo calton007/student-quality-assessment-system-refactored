@@ -16,6 +16,7 @@
 #include "MoralService.h"
 #include "PasswordHasher.h"
 #include "QueryService.h"
+#include "ScoreDetailService.h"
 #include "ScoreService.h"
 #include "StudentConsole.h"
 #include "TeacherConsole.h"
@@ -302,9 +303,10 @@ namespace
 		assert(!containsItem(lockedGroup, "附加分管理"));
 		assert(!containsItem(lockedGroup, "审核课外活动加分"));
 		assert(containsItem(lockedGroup, "查询项目"));
+		assert(containsItem(lockedGroup, "综测成绩详情"));
 		assert(containsItem(lockedGroup, "导出综测成绩"));
 		assert(containsItem(lockedGroup, "综测成绩生成"));
-		assert(lockedGroup.size() == 6);
+		assert(lockedGroup.size() == 7);
 
 		const std::vector<std::string> unlockedStudent = StudentConsole::homeMenuItems(false);
 		assert(containsItem(unlockedStudent, "思想品德项目"));
@@ -670,6 +672,27 @@ namespace
 		assert(static_cast<unsigned char>(csv[2]) == 0xBF);
 		assert(csv.find("学号,姓名,学习成绩,GPA,课外活动成绩,思想品德成绩,附加分,综测成绩,排名") != std::string::npos);
 		assert(csv.find("10002,学生1,100,4,10,100,5,91.5,1") != std::string::npos);
+	}
+
+	void testScoreDetailIsReadOnly()
+	{
+		const std::filesystem::path directory = prepareRepositoryData();
+		AssessmentRepository repository(directory.string());
+		repository.loadAll();
+		ScoreService(repository).buildTotal();
+		const size_t courseCount = repository.courses().size();
+		const size_t activityCount = repository.activities().size();
+
+		ScoreDetail detail = ScoreDetailService(repository).detailFor("10002");
+		assert(detail.user.name == "学生1");
+		assert(closeTo(detail.score.total, 91.5f));
+		assert(detail.courses.size() == 1);
+		assert(detail.activities.size() == 2);
+		assert(detail.additions.size() == 2);
+		assert(detail.studentMorals.size() == 1);
+		assert(detail.teacherMorals.size() == 1);
+		assert(repository.courses().size() == courseCount);
+		assert(repository.activities().size() == activityCount);
 	}
 
 	void testDefaultStateAndTotalQueryGate()
@@ -1074,6 +1097,7 @@ int main()
 	testFailedSaveKeepsOldFile();
 	testRepositoryAuthAndScoreService();
 	testExportTotalsCsv();
+	testScoreDetailIsReadOnly();
 	testDefaultStateAndTotalQueryGate();
 	testMutationServices();
 	testTotalGenerationLocksMutationsAndRevokeUnlocks();
